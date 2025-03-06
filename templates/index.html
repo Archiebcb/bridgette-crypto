@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Bridgette’s Crypto Bridge</title>
+    <style>
+        body { background: #1a1a1a; color: #fff; font-family: Arial, sans-serif; text-align: center; }
+        #bridge { width: 500px; height: 50px; background: #333; margin: 20px auto; position: relative; }
+        #bridge-line { position: absolute; top: 20px; left: 0; width: 100%; height: 10px; background: #00ffcc; }
+        #dot { position: absolute; top: 15px; left: 0; width: 10px; height: 20px; background: #ff00ff; animation: move 2s infinite linear; }
+        @keyframes move { 0% { left: 0; } 100% { left: 490px; } }
+        #chat { width: 80%; max-width: 600px; margin: 20px auto; background: #222; padding: 10px; border-radius: 5px; }
+    </style>
+</head>
+<body>
+    <h1 style="color: #00ffff;">Bridgette</h1>
+    <div id="bridge">
+        <div id="bridge-line"></div>
+        <div id="dot"></div>
+    </div>
+    <div id="chat">
+        <p>{{ greeting }}</p>
+        <p id="ticker">Loading rates...</p>
+    </div>
+    <script>
+        function updateTicker() {
+            fetch('/ticker')
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById('ticker').innerText = `${data.message}\n${data.rate || 'No rate yet!'}`;
+                    setTimeout(updateTicker, 5000); // Update every 5s
+                });
+        }
+        updateTicker();
+    </script>
+</body>
+</html>
