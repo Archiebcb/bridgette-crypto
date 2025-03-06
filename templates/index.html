@@ -423,19 +423,20 @@
                 .catch(error => console.error('Pairs fetch error:', error));
         }
 
-        // Three.js Bridge Animation
+        // Three.js Golden Gate Bridge Animation
         let bridgeScene, bridgeCamera, bridgeRenderer;
-        let bridge, pillars = [];
+        let bridgeDeck, towers = [], cables = [];
         let bridgeProgress = 0;
         let animationFrameId;
         let isAnimating = false;
         const ANIMATION_DURATION = 3000; // 3 seconds
         let animationStartTime = null;
+        let audio = new Audio('/static/bridge-complete.mp3');
 
         function initBridge() {
             const container = document.getElementById('interactive-bridge');
             bridgeCamera = new THREE.PerspectiveCamera(75, container.offsetWidth / container.offsetHeight, 0.1, 1000);
-            bridgeCamera.position.set(0, 2, 5);
+            bridgeCamera.position.set(0, 5, 10);
             bridgeCamera.lookAt(0, 0, 0);
 
             bridgeScene = new THREE.Scene();
@@ -450,24 +451,34 @@
             directionalLight.position.set(0, 1, 1);
             bridgeScene.add(directionalLight);
 
-            // Bridge (main span)
-            const bridgeGeometry = new THREE.BoxGeometry(2, 0.2, 0.2);
-            const bridgeMaterial = new THREE.MeshPhongMaterial({ color: 0x00ccff, emissive: 0x00ccff, emissiveIntensity: 0.5 });
-            bridge = new THREE.Mesh(bridgeGeometry, bridgeMaterial);
-            bridge.position.y = -0.5;
-            bridge.scale.x = 0; // Start with no width
-            bridgeScene.add(bridge);
+            // Bridge Deck (simplified Golden Gate shape)
+            const deckGeometry = new THREE.BoxGeometry(5, 0.2, 0.5);
+            const deckMaterial = new THREE.MeshPhongMaterial({ color: 0x00ccff, emissive: 0x00ccff, emissiveIntensity: 0.5 });
+            bridgeDeck = new THREE.Mesh(deckGeometry, deckMaterial);
+            bridgeDeck.position.y = 0;
+            bridgeDeck.scale.x = 0; // Start with no length
+            bridgeScene.add(bridgeDeck);
 
-            // Pillars
-            const pillarGeometry = new THREE.BoxGeometry(0.2, 1, 0.2);
-            const pillarMaterial = new THREE.MeshPhongMaterial({ color: 0xff69b4, emissive: 0xff69b4, emissiveIntensity: 0.5 });
-            for (let i = -0.8; i <= 0.8; i += 0.8) {
-                const pillar = new THREE.Mesh(pillarGeometry, pillarMaterial);
-                pillar.position.set(i, -0.5, 0);
-                pillar.scale.y = 0; // Start with no height
-                bridgeScene.add(pillar);
-                pillars.push(pillar);
+            // Towers (simplified Golden Gate towers)
+            const towerGeometry = new THREE.BoxGeometry(0.3, 2, 0.3);
+            const towerMaterial = new THREE.MeshPhongMaterial({ color: 0xff69b4, emissive: 0xff69b4, emissiveIntensity: 0.5 });
+            for (let x of [-1.5, 1.5]) {
+                const tower = new THREE.Mesh(towerGeometry, towerMaterial);
+                tower.position.set(x, 1, 0);
+                tower.scale.y = 0; // Start with no height
+                bridgeScene.add(tower);
+                towers.push(tower);
             }
+
+            // Cables (simplified suspension cables)
+            const cableMaterial = new THREE.LineBasicMaterial({ color: 0xffffff });
+            const cablePoints = [];
+            cablePoints.push(new THREE.Vector3(-1.5, 1.5, 0));
+            cablePoints.push(new THREE.Vector3(1.5, 1.5, 0));
+            const cableGeometry = new THREE.BufferGeometry().setFromPoints(cablePoints);
+            const cable = new THREE.Line(cableGeometry, cableMaterial);
+            bridgeScene.add(cable);
+            cables.push(cable);
 
             bridgeRenderer = new THREE.WebGLRenderer({ antialias: true });
             bridgeRenderer.setSize(container.offsetWidth, container.offsetHeight);
@@ -487,10 +498,23 @@
                 if (!animationStartTime) animationStartTime = time;
                 const elapsed = time - animationStartTime;
                 bridgeProgress = Math.min(elapsed / ANIMATION_DURATION, 1);
-                bridge.scale.x = bridgeProgress;
-                pillars.forEach(pillar => {
-                    pillar.scale.y = bridgeProgress;
+
+                // Animate deck and towers
+                bridgeDeck.scale.x = bridgeProgress * 1.2; // Extend slightly beyond towers
+                towers.forEach(tower => {
+                    tower.scale.y = bridgeProgress * 1.5; // Grow towers
                 });
+
+                // Sync sound with progress
+                const chimeIntervals = [0.25, 0.5, 0.75, 1]; // Progress points for chimes
+                chimeIntervals.forEach((interval, index) => {
+                    if (bridgeProgress >= interval && !audio.dataset[`chime${index}`]) {
+                        audio.currentTime = index * 0.5; // Assuming each chime is ~0.5s apart
+                        audio.play().catch(error => console.log('Chime play failed:', error));
+                        audio.dataset[`chime${index}`] = true;
+                    }
+                });
+
                 if (bridgeProgress >= 1) {
                     isAnimating = false;
                     stopBridgeAnimation();
@@ -501,12 +525,12 @@
 
         function startBridgeAnimation() {
             bridgeProgress = 0;
-            bridge.scale.x = 0;
-            pillars.forEach(pillar => {
-                pillar.scale.y = 0;
-            });
+            bridgeDeck.scale.x = 0;
+            towers.forEach(tower => tower.scale.y = 0);
             isAnimating = true;
             animationStartTime = null;
+            audio.currentTime = 0;
+            audio.dataset.chime0 = audio.dataset.chime1 = audio.dataset.chime2 = audio.dataset.chime3 = false; // Reset chimes
             const message = document.getElementById('bridge-message');
             message.style.opacity = 0;
         }
@@ -515,8 +539,8 @@
             const message = document.getElementById('bridge-message');
             message.textContent = 'Your bridge has been built!';
             message.style.opacity = 1;
-            const audio = new Audio('/static/bridge-complete.mp3');
-            audio.play().catch(error => console.log('Audio play failed:', error));
+            audio.pause();
+            audio.currentTime = 0;
         }
 
         window.addEventListener('load', initBridge);
