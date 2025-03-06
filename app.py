@@ -4,8 +4,6 @@ import random
 import sqlite3
 import logging
 from datetime import datetime
-import solana.rpc.api as solrpc
-from solana.publickey import PublicKey
 import requests
 
 app = Flask(__name__, static_folder='static')
@@ -42,12 +40,6 @@ def setup_exchanges():
         logger.error(f"Crypto.com setup failed: {e}")
         exchanges['cryptocom'] = None
 
-    try:
-        exchanges['solana'] = solrpc.Client("https://api.mainnet-beta.solana.com")
-    except Exception as e:
-        logger.error(f"Solana setup failed: {e}")
-        exchanges['solana'] = None
-
     return exchanges
 
 exchanges = setup_exchanges()
@@ -81,7 +73,6 @@ def save_swap(from_chain, from_token, amount, to_chain, to_token, quote, error=N
 
 def get_solana_price(token):
     try:
-        # Use CoinGecko API as a simple public price feed (mock for now)
         response = requests.get(f"https://api.coingecko.com/api/v3/simple/price?ids={token.lower()}&vs_currencies=usd")
         data = response.json()
         return data[token.lower()]['usd'] if token.lower() in data else 150.00  # Default to 150 if unavailable
@@ -102,9 +93,8 @@ def get_ticker():
         if exchanges['cryptocom']:
             ticker = exchanges['cryptocom'].fetch_ticker('ETH/USDT')
             rates['ETH/USDT'] = f"ETH/USDT: {ticker['last']}"
-        if exchanges['solana']:
-            sol_price = get_solana_price('solana')
-            rates['SOL/USDT'] = f"SOL/USDT: {sol_price}"
+        sol_price = get_solana_price('solana')
+        rates['SOL/USDT'] = f"SOL/USDT: {sol_price}"
         return jsonify({'message': bridgette.talk(), 'rates': rates})
     except Exception as e:
         logger.error(f"Ticker fetch error: {e}")
@@ -117,9 +107,7 @@ def available_pairs():
         if exchanges['cryptocom']:
             markets = exchanges['cryptocom'].load_markets()
             pairs['cryptocom'] = [pair for pair in markets.keys() if markets[pair]['active'] and markets[pair]['quote'] == 'USDT']
-        if exchanges['solana']:
-            # Mock Solana pairs (using CoinGecko-compatible tokens)
-            pairs['solana'] = ['SOL/USDT', 'SRM/USDT', 'RAY/USDT']  # Expand with real pairs later
+        pairs['solana'] = ['SOL/USDT', 'SRM/USDT', 'RAY/USDT']  # Mock Solana pairs
         logger.debug(f"Fetched pairs: {pairs}")
         return jsonify({'pairs': pairs})
     except Exception as e:
@@ -135,11 +123,10 @@ def simulate_swap():
     to_chain = data.get('to_chain')
     to_token = data.get('to_token')
 
-    if from_chain not in exchanges or to_chain not in exchanges:
+    if from_chain not in ['cryptocom', 'solana'] or to_chain not in ['cryptocom', 'solana']:
         return jsonify({'quote': 0, 'error': 'Chain not supported'})
 
     try:
-        # Simplified cross-chain rate simulation
         rate = 1.0
         if from_chain == 'cryptocom':
             ticker = exchanges['cryptocom'].fetch_ticker(f'{from_token}/USDT')
