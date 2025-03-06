@@ -4,19 +4,111 @@
     <meta charset="UTF-8">
     <title>Bridgette’s Crypto Bridge</title>
     <style>
-        body { background: #1a1a1a; color: #fff; font-family: Arial, sans-serif; text-align: center; }
-        #bridge { width: 500px; height: 50px; background: #333; margin: 20px auto; position: relative; }
-        #bridge-line { position: absolute; top: 20px; left: 0; width: 100%; height: 10px; background: #00ffcc; }
-        #dot { position: absolute; top: 15px; left: 0; width: 10px; height: 20px; background: #ff00ff; animation: move 2s infinite linear; }
-        @keyframes move { 0% { left: 0; } 100% { left: 490px; } }
-        #chat { width: 80%; max-width: 600px; margin: 20px auto; background: #222; padding: 10px; border-radius: 5px; }
+        body {
+            background: #0a0a1a; /* Deep space purple */
+            color: #fff;
+            font-family: 'Arial', sans-serif;
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            height: 100vh;
+        }
+        #header {
+            color: #00ffff; /* Neon cyan */
+            font-size: 2.5em;
+            margin: 20px 0;
+            text-shadow: 0 0 10px #00ffff, 0 0 20px #00ffff;
+        }
+        #bridge-container {
+            position: relative;
+            width: 80%;
+            max-width: 800px;
+            height: 100px;
+            perspective: 1000px;
+        }
+        #bridge {
+            width: 100%;
+            height: 50px;
+            background: linear-gradient(90deg, #00ccff, #ff00ff); /* Neon gradient */
+            position: relative;
+            border-radius: 10px;
+            box-shadow: 0 0 20px #00ccff;
+            animation: pulse 2s infinite alternate;
+        }
+        @keyframes pulse {
+            0% { box-shadow: 0 0 10px #00ccff; }
+            100% { box-shadow: 0 0 30px #ff00ff; }
+        }
+        #dot {
+            position: absolute;
+            top: 15px;
+            width: 15px;
+            height: 20px;
+            background: #ff69b4; /* Hot pink token */
+            border-radius: 50%;
+            animation: move 3s infinite linear;
+        }
+        @keyframes move {
+            0% { left: -15px; }
+            100% { left: 100%; }
+        }
+        #cityscape {
+            position: absolute;
+            bottom: -20px;
+            width: 100%;
+            height: 20px;
+            background: repeating-linear-gradient(
+                90deg,
+                #222 0,
+                #222 10px,
+                #444 10px,
+                #444 20px
+            ); /* Digital skyline */
+        }
+        #bridgette-avatar {
+            position: absolute;
+            top: -80px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 100px;
+            height: 100px;
+            /* Placeholder—replace with image URL later */
+            background: url('https://via.placeholder.com/100?text=Bridgette'); /* Temp image */
+            background-size: cover;
+            animation: sway 3s infinite alternate;
+        }
+        @keyframes sway {
+            0% { transform: translateX(-50%) rotate(-5deg); }
+            100% { transform: translateX(-50%) rotate(5deg); }
+        }
+        #chat {
+            width: 80%;
+            max-width: 600px;
+            margin: 20px auto;
+            background: rgba(34, 34, 34, 0.9);
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 15px #00ccff;
+            text-align: left;
+            font-size: 1.1em;
+        }
+        #ticker {
+            color: #ff69b4;
+            margin-top: 10px;
+        }
     </style>
 </head>
 <body>
-    <h1 style="color: #00ffff;">Bridgette</h1>
-    <div id="bridge">
-        <div id="bridge-line"></div>
-        <div id="dot"></div>
+    <div id="header">Bridgette</div>
+    <div id="bridge-container">
+        <div id="bridge">
+            <div id="dot"></div>
+        </div>
+        <div id="cityscape"></div>
+        <div id="bridgette-avatar"></div>
     </div>
     <div id="chat">
         <p>{{ greeting }}</p>
@@ -32,6 +124,14 @@
                 });
         }
         updateTicker();
+        // Add more dots for token flow
+        for (let i = 0; i < 3; i++) {
+            let newDot = document.createElement('div');
+            newDot.className = 'dot';
+            newDot.style.left = `${i * 20 - 15}px`;
+            newDot.style.animationDelay = `${i * 0.5}s`;
+            document.getElementById('bridge').appendChild(newDot);
+        }
     </script>
 </body>
 </html>
