@@ -27,7 +27,7 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(0, 0, 0, 0.4); /* Transparent overlay */
+            background: rgba(0, 0, 0, 0.4);
             z-index: 1;
         }
         .navbar {
@@ -41,6 +41,14 @@
             color: #ff69b4 !important;
             font-weight: bold;
             text-shadow: 0 0 10px #ff69b4;
+            animation: glitch 2s linear infinite;
+        }
+        @keyframes glitch {
+            0% { transform: translate(0); }
+            2% { transform: translate(-2px, 2px); }
+            4% { transform: translate(2px, -2px); }
+            6% { transform: translate(0); }
+            100% { transform: translate(0); }
         }
         #bridge-dashboard {
             min-height: 80vh;
@@ -52,6 +60,13 @@
             position: relative;
             z-index: 10;
             backdrop-filter: blur(5px);
+            border: 1px solid #00ccff;
+            animation: neon-border 3s infinite;
+        }
+        @keyframes neon-border {
+            0% { border-color: #00ccff; box-shadow: 0 0 10px #00ccff; }
+            50% { border-color: #ff69b4; box-shadow: 0 0 10px #ff69b4; }
+            100% { border-color: #00ccff; box-shadow: 0 0 10px #00ccff; }
         }
         .description {
             padding: 25px;
@@ -66,26 +81,26 @@
         #bridge-container {
             position: relative;
             width: 100%;
-            height: 400px; /* Increased height for more dramatic effect */
+            height: 400px;
             margin-bottom: 40px;
             overflow: hidden;
         }
         #bridge-construction {
             width: 100%;
-            height: 20px; /* Thicker bridge */
+            height: 20px;
             background: rgba(51, 51, 51, 0.3);
             position: relative;
             border-radius: 10px;
             overflow: hidden;
             top: 150px;
-            box-shadow: 0 0 15px #00ccff inset; /* Neon glow */
+            box-shadow: 0 0 15px #00ccff inset;
         }
         .bridge-segment {
             position: absolute;
             height: 100%;
             background: linear-gradient(90deg, #00ccff, #ff69b4);
             border-radius: 10px;
-            box-shadow: 0 0 10px #00ccff; /* Glowing effect */
+            box-shadow: 0 0 10px #00ccff;
             transition: width 0.3s ease-in-out, transform 0.3s ease-in-out;
             transform-origin: left;
         }
@@ -97,10 +112,10 @@
         #segment-6 { left: 83.33%; width: 0; }
         .bridge-complete {
             width: 100% !important;
-            transform: scale(1.1); /* Slight scale for drama */
+            transform: scale(1.1);
             opacity: 1;
             transition: width 0.5s ease-out, transform 0.5s ease-out, opacity 0.5s ease-out;
-            box-shadow: 0 0 20px #ff69b4, 0 0 30px #00ccff; /* Enhanced glow on completion */
+            box-shadow: 0 0 20px #ff69b4, 0 0 30px #00ccff;
         }
         .particle {
             position: absolute;
@@ -115,8 +130,22 @@
             50% { transform: translateY(-80px) scale(1.5); opacity: 0.8; }
             100% { transform: translateY(-160px) scale(0); opacity: 0; }
         }
-        #bridgette-avatar {
-            display: none;
+        .holographic {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            width: 100px;
+            height: 100px;
+            background: url('/static/hologram.png') no-repeat center;
+            background-size: contain;
+            opacity: 0.7;
+            animation: float 4s ease-in-out infinite;
+            z-index: 11;
+        }
+        @keyframes float {
+            0% { transform: translateY(0); }
+            50% { transform: translateY(-20px); }
+            100% { transform: translateY(0); }
         }
         #bridge-message {
             position: absolute;
@@ -137,12 +166,26 @@
             overflow-y: auto;
             border-left: 4px solid #00ccff;
             margin-bottom: 25px;
+            position: relative;
+        }
+        .chat-box p {
+            opacity: 0;
+            animation: type 1s forwards;
+        }
+        @keyframes type {
+            0% { opacity: 0; }
+            100% { opacity: 1; }
         }
         .ticker {
             color: #00ccff;
             font-weight: bold;
             margin-top: 15px;
             font-size: 1.2em;
+            opacity: 0;
+            transition: opacity 0.5s ease-in;
+        }
+        .ticker.active {
+            opacity: 1;
         }
         .input-group {
             margin-top: 25px;
@@ -205,6 +248,7 @@
             .sidebar { margin-right: 0; margin-bottom: 20px; }
             .navbar-brand { font-size: 1.5em; }
             .description { font-size: 1.1em; }
+            .holographic { width: 80px; height: 80px; }
         }
     </style>
     <!-- Google Fonts -->
@@ -233,7 +277,11 @@
             <div class="col-md-3">
                 <div class="sidebar">
                     <h5>Market Stats</h5>
-                    <p class="ticker" id="market-ticker">ETH/USDT: Loading...</p>
+                    <div id="market-ticker-container">
+                        <p class="ticker" id="ticker-1">ETH/USDT: Loading...</p>
+                        <p class="ticker" id="ticker-2">BTC/USDT: Loading...</p>
+                        <p class="ticker" id="ticker-3">XRP/USDT: Loading...</p>
+                    </div>
                 </div>
             </div>
             <!-- Main Content -->
@@ -266,6 +314,8 @@
                 </div>
             </div>
         </div>
+        <!-- Holographic Element -->
+        <div class="holographic"></div>
     </div>
 
     <!-- Scripts at the bottom -->
@@ -292,7 +342,7 @@
             });
         });
 
-        // Populate ticker
+        // Cycle through multiple tickers
         function updateTicker() {
             fetch('/ticker')
                 .then(response => {
@@ -300,9 +350,33 @@
                     return response.json();
                 })
                 .then(data => {
-                    document.getElementById('ticker').innerText = `${data.message}\n${data.rate || 'No rate yet!'}`;
-                    document.getElementById('market-ticker').innerText = `ETH/USDT: ${data.rate || 'Loading...'}`;
-                    setTimeout(updateTicker, 5000);
+                    // Update main ticker
+                    document.getElementById('ticker').innerText = `${data.message}\n${data.rates['ETH/USDT'] || 'No rate yet!'}`;
+
+                    // Update sidebar tickers
+                    const tickers = [
+                        { id: 'ticker-1', pair: 'ETH/USDT' },
+                        { id: 'ticker-2', pair: 'BTC/USDT' },
+                        { id: 'ticker-3', pair: 'XRP/USDT' }
+                    ];
+                    let currentIndex = 0;
+
+                    function cycleTickers() {
+                        tickers.forEach((ticker, index) => {
+                            const element = document.getElementById(ticker.id);
+                            if (index === currentIndex) {
+                                element.classList.add('active');
+                                element.innerText = `${ticker.pair}: ${data.rates[ticker.pair] || 'Loading...'}`;
+                            } else {
+                                element.classList.remove('active');
+                            }
+                        });
+                        currentIndex = (currentIndex + 1) % tickers.length;
+                    }
+
+                    cycleTickers();
+                    setInterval(cycleTickers, 3000); // Cycle every 3 seconds
+                    setTimeout(updateTicker, 5000); // Fetch new rates every 5 seconds
                 })
                 .catch(error => console.error('Ticker fetch error:', error));
         }
@@ -360,17 +434,17 @@
             let delay = 0;
             segments.forEach(segment => {
                 setTimeout(() => {
-                    segment.style.width = '16.67%'; // Adjusted for 6 segments
-                    for (let i = 0; i < 10; i++) { // Increased particle count
+                    segment.style.width = '16.67%';
+                    for (let i = 0; i < 10; i++) {
                         let particle = document.createElement('div');
                         particle.className = 'particle';
                         particle.style.left = `${Math.random() * 100}%`;
-                        particle.style.top = `${Math.random() * 50 + 50}%`; // Position above bridge
+                        particle.style.top = `${Math.random() * 50 + 50}%`;
                         particle.style.animationDelay = `${Math.random() * 1}s`;
                         container.appendChild(particle);
                     }
                 }, delay);
-                delay += 300; // Faster animation for more segments
+                delay += 300;
             });
 
             setTimeout(() => {
@@ -378,9 +452,9 @@
                 const message = document.getElementById('bridge-message');
                 message.textContent = 'Your bridge has been built!';
                 message.style.opacity = 1;
-                // Optional: Add sound effect (uncomment and host audio file)
-                // const audio = new Audio('/static/bridge-complete.mp3');
-                // audio.play();
+                // Play sound on completion
+                const audio = new Audio('/static/bridge-complete.mp3');
+                audio.play();
             }, delay + 500);
 
             fetch('/simulate_swap', {

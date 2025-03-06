@@ -47,14 +47,21 @@ def home():
 def get_ticker():
     bridgette = Bridgette()
     if not exchange:
-        return jsonify({'message': 'Exchange setup failed', 'rate': None})
+        return jsonify({'message': 'Exchange setup failed', 'rates': {}})
     try:
-        ticker = exchange.fetch_ticker('ETH/USDT')
-        rate = ticker['last']
-        return jsonify({'message': bridgette.talk(), 'rate': f"ETH/USDT: {rate}"})
+        pairs = ['ETH/USDT', 'BTC/USDT', 'XRP/USDT']
+        rates = {}
+        for pair in pairs:
+            try:
+                ticker = exchange.fetch_ticker(pair)
+                rates[pair] = f"{pair}: {ticker['last']}"
+            except Exception as e:
+                logger.error(f"Ticker fetch error for {pair}: {e}")
+                rates[pair] = f"{pair}: N/A"
+        return jsonify({'message': bridgette.talk(), 'rates': rates})
     except Exception as e:
         logger.error(f"Ticker fetch error: {e}")
-        return jsonify({'message': f"Oops, babe: {e}", 'rate': None})
+        return jsonify({'message': f"Oops, babe: {e}", 'rates': {}})
 
 @app.route('/available_pairs')
 def available_pairs():
