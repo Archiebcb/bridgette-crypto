@@ -191,6 +191,7 @@
             margin-top: 25px;
             display: flex;
             align-items: center;
+            flex-wrap: wrap;
         }
         .btn-primary {
             background-color: #ff69b4;
@@ -290,7 +291,7 @@
     <!-- Main Dashboard -->
     <div class="container">
         <div class="row" id="bridge-dashboard">
-            <!-- Top Row: Tickers and Bridge Animation -->
+            <!-- Top Row: Tickers and Swap Inputs -->
             <div class="col-md-12">
                 <div class="row">
                     <!-- Live Tickers -->
@@ -299,25 +300,50 @@
                             <h5>Market Stats</h5>
                             <div id="market-ticker-container">
                                 <p class="ticker" id="ticker-1">ETH/USDT: Loading...</p>
-                                <p class="ticker" id="ticker-2">BTC/USDT: Loading...</p>
-                                <p class="ticker" id="ticker-3">XRP/USDT: Loading...</p>
+                                <p class="ticker" id="ticker-2">BNB/USDT: Loading...</p>
+                                <p class="ticker" id="ticker-3">SOL/USDT: Loading...</p>
                             </div>
                         </div>
                     </div>
-                    <!-- Bridge Animation -->
+                    <!-- Swap Inputs -->
                     <div class="col-md-9">
-                        <div id="bridge-container">
-                            <div id="bridge-construction">
-                                <div id="segment-1" class="bridge-segment"></div>
-                                <div id="segment-2" class="bridge-segment"></div>
-                                <div id="segment-3" class="bridge-segment"></div>
-                                <div id="segment-4" class="bridge-segment"></div>
-                                <div id="segment-5" class="bridge-segment"></div>
-                                <div id="segment-6" class="bridge-segment"></div>
-                            </div>
-                            <div id="bridge-message"></div>
+                        <div class="input-group">
+                            <select class="form-control chain-select" id="from-chain">
+                                <option value="">Select From Chain</option>
+                                <option value="cryptocom">Ethereum (Crypto.com)</option>
+                                <option value="binance">Binance Smart Chain</option>
+                                <option value="solana">Solana</option>
+                            </select>
+                            <select class="form-control token-select" id="from-token">
+                                <option value="">Select From Token</option>
+                            </select>
+                            <input type="number" class="form-control" id="amount" placeholder="Amount" step="0.01" aria-label="Amount">
+                            <select class="form-control chain-select" id="to-chain">
+                                <option value="">Select To Chain</option>
+                                <option value="cryptocom">Ethereum (Crypto.com)</option>
+                                <option value="binance">Binance Smart Chain</option>
+                                <option value="solana">Solana</option>
+                            </select>
+                            <select class="form-control token-select" id="to-token">
+                                <option value="">Select To Token</option>
+                            </select>
+                            <button class="btn btn-primary" onclick="requestSwap()">Swap</button>
                         </div>
                     </div>
+                </div>
+            </div>
+            <!-- Bridge Animation -->
+            <div class="col-md-12">
+                <div id="bridge-container">
+                    <div id="bridge-construction">
+                        <div id="segment-1" class="bridge-segment"></div>
+                        <div id="segment-2" class="bridge-segment"></div>
+                        <div id="segment-3" class="bridge-segment"></div>
+                        <div id="segment-4" class="bridge-segment"></div>
+                        <div id="segment-5" class="bridge-segment"></div>
+                        <div id="segment-6" class="bridge-segment"></div>
+                    </div>
+                    <div id="bridge-message"></div>
                 </div>
             </div>
             <!-- Chat Box -->
@@ -325,19 +351,6 @@
                 <div class="chat-box">
                     <p>{{ greeting }}</p>
                     <p class="ticker" id="ticker">Loading rates...</p>
-                </div>
-            </div>
-            <!-- Swap Inputs -->
-            <div class="col-md-12">
-                <div class="input-group">
-                    <select class="form-control token-select" id="from-token">
-                        <option value="">Select From Token</option>
-                    </select>
-                    <input type="number" class="form-control" id="amount" placeholder="Amount" step="0.01" aria-label="Amount">
-                    <select class="form-control token-select" id="to-token">
-                        <option value="">Select To Token</option>
-                    </select>
-                    <button class="btn btn-primary" onclick="requestSwap()">Swap</button>
                 </div>
             </div>
             <!-- History Tab -->
@@ -373,8 +386,8 @@
     <script>
         // Initialize Select2 for dropdowns with search
         $(document).ready(function() {
-            $('.token-select').select2({
-                placeholder: "Search for a token",
+            $('.chain-select, .token-select').select2({
+                placeholder: "Select an option",
                 allowClear: true,
                 width: '100%',
                 minimumResultsForSearch: 0,
@@ -387,6 +400,17 @@
                     }
                     return null;
                 }
+            });
+
+            // Update token dropdowns based on chain selection
+            $('#from-chain').on('change', function() {
+                const chain = $(this).val();
+                populateTokens('from-token', chain);
+            });
+
+            $('#to-chain').on('change', function() {
+                const chain = $(this).val();
+                populateTokens('to-token', chain);
             });
         });
 
@@ -401,8 +425,8 @@
                     document.getElementById('ticker').innerText = `${data.message}\n${data.rates['ETH/USDT'] || 'No rate yet!'}`;
                     const tickers = [
                         { id: 'ticker-1', pair: 'ETH/USDT' },
-                        { id: 'ticker-2', pair: 'BTC/USDT' },
-                        { id: 'ticker-3', pair: 'XRP/USDT' }
+                        { id: 'ticker-2', pair: 'BNB/USDT' },
+                        { id: 'ticker-3', pair: 'SOL/USDT' }
                     ];
                     let currentIndex = 0;
 
@@ -427,8 +451,8 @@
         }
         updateTicker();
 
-        // Populate token dropdowns with error handling
-        function populateTokens() {
+        // Populate token dropdowns based on chain
+        function populateTokens(target, chain) {
             fetch('/available_pairs')
                 .then(response => {
                     if (!response.ok) throw new Error('Network response was not ok ' + response.statusText);
@@ -436,33 +460,33 @@
                 })
                 .then(data => {
                     if (data.error) throw new Error(data.error);
-                    const fromSelect = document.getElementById('from-token');
-                    const toSelect = document.getElementById('to-token');
-                    fromSelect.innerHTML = '<option value="">Select From Token</option>';
-                    toSelect.innerHTML = '<option value="">Select To Token</option>';
-                    const uniqueTokens = new Set();
-                    data.pairs.forEach(pair => {
-                        const [from, to] = pair.split('/');
-                        uniqueTokens.add(from);
-                        uniqueTokens.add(to);
-                    });
-                    uniqueTokens.forEach(token => {
-                        fromSelect.innerHTML += `<option value="${token}">${token}</option>`;
-                        toSelect.innerHTML += `<option value="${token}">${token}</option>`;
-                    });
-                    $('.token-select').trigger('change');
+                    const select = document.getElementById(target);
+                    select.innerHTML = '<option value="">Select Token</option>';
+                    if (chain && data.pairs[chain]) {
+                        const uniqueTokens = new Set();
+                        data.pairs[chain].forEach(pair => {
+                            const [from, to] = pair.split('/');
+                            uniqueTokens.add(from);
+                            uniqueTokens.add(to);
+                        });
+                        uniqueTokens.forEach(token => {
+                            select.innerHTML += `<option value="${token}">${token}</option>`;
+                        });
+                    }
+                    $(`#${target}`).trigger('change');
                 })
                 .catch(error => console.error('Pairs fetch error:', error));
         }
-        populateTokens();
 
         // Handle swap request
         function requestSwap() {
+            const fromChain = document.getElementById('from-chain').value;
             const fromToken = document.getElementById('from-token').value;
             const amount = document.getElementById('amount').value;
+            const toChain = document.getElementById('to-chain').value;
             const toToken = document.getElementById('to-token').value;
 
-            if (!fromToken || !amount || !toToken) {
+            if (!fromChain || !fromToken || !amount || !toChain || !toToken) {
                 alert('Please fill in all fields!');
                 return;
             }
@@ -504,7 +528,7 @@
             fetch('/simulate_swap', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ from: fromToken, amount: parseFloat(amount), to: toToken })
+                body: JSON.stringify({ from_chain: fromChain, from_token: fromToken, amount: parseFloat(amount), to_chain: toChain, to_token: toToken })
             })
             .then(response => {
                 if (!response.ok) throw new Error('Network response was not ok ' + response.statusText);
@@ -532,7 +556,7 @@
                     const list = document.getElementById('history-list');
                     list.innerHTML = '';
                     data.history.forEach(item => {
-                        list.innerHTML += `<li>${item.timestamp} - ${item.amount} ${item.from_token} to ${item.to_token} = ${item.quote} ${item.to_token} ${item.error ? `(Error: ${item.error})` : ''}</li>`;
+                        list.innerHTML += `<li>${item.timestamp} - ${item.amount} ${item.from_token} (${item.from_chain}) to ${item.to_token} (${item.to_chain}) = ${item.quote} ${item.to_token} ${item.error ? `(Error: ${item.error})` : ''}</li>`;
                     });
                 })
                 .catch(error => console.error('History fetch error:', error));
@@ -545,7 +569,6 @@
                 .then(data => {
                     document.getElementById('total-bridged').innerText = data.total_bridged.toFixed(2) || 0;
                     document.getElementById('best-trade').innerText = data.best_trade.toFixed(2) || 0;
-                    // Simple smart suggestion
                     if (data.best_trade > 0) {
                         document.getElementById('smart-suggestions').innerText = 'Suggestion: Repeat your best trade pair for max profit!';
                     }
@@ -556,7 +579,7 @@
         // Initial load
         updateHistory();
         updateAnalytics();
-        setInterval(updateHistory, 5000); // Refresh every 5 seconds
+        setInterval(updateHistory, 5000);
         setInterval(updateAnalytics, 5000);
     </script>
 </body>

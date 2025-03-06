@@ -4,6 +4,8 @@ import random
 import sqlite3
 import logging
 from datetime import datetime
+import solana.rpc.api as solrpc
+from solana.publickey import PublicKey
 
 app = Flask(__name__, static_folder='static')
 
@@ -26,19 +28,38 @@ class Bridgette:
             "Future’s now, babe—watch me flex!"
         ])
 
-# Crypto.com setup
-def setup_exchange():
+# Setup exchanges
+def setup_exchanges():
+    exchanges = {}
     try:
-        return ccxt.cryptocom({
+        exchanges['cryptocom'] = ccxt.cryptocom({
             'apiKey': 'qs8bkoi6De3se4D6Smw2Tw',
             'secret': 'cxakp_SbQK3oSt3n5mVFqi6opCTk',
             'enableRateLimit': True,
         })
     except Exception as e:
-        logger.error(f"Exchange setup failed: {e}")
-        return None
+        logger.error(f"Crypto.com setup failed: {e}")
+        exchanges['cryptocom'] = None
 
-exchange = setup_exchange()
+    try:
+        exchanges['binance'] = ccxt.binance({
+            'apiKey': 'YOUR_BINANCE_API_KEY',  # Replace with your Binance API key
+            'secret': 'YOUR_BINANCE_SECRET',   # Replace with your Binance secret
+            'enableRateLimit': True,
+        })
+    except Exception as e:
+        logger.error(f"Binance setup failed: {e}")
+        exchanges['binance'] = None
+
+    try:
+        exchanges['solana'] = solrpc.Client("https://api.mainnet-beta.solana.com")
+    except Exception as e:
+        logger.error(f"Solana setup failed: {e}")
+        exchanges['solana'] = None
+
+    return exchanges
+
+exchanges = setup_exchanges()
 
 # Database setup
 def init_db():
@@ -47,8 +68,10 @@ def init_db():
     c.execute('''CREATE TABLE IF NOT EXISTS swaps
                  (id INTEGER PRIMARY KEY AUTOINCREMENT,
                   timestamp TEXT,
+                  from_chain TEXT,
                   from_token TEXT,
                   amount REAL,
+                  to_chain TEXT,
                   to_token TEXT,
                   quote REAL,
                   error TEXT)''')
@@ -57,11 +80,11 @@ def init_db():
 
 init_db()
 
-def save_swap(from_token, amount, to_token, quote, error=None):
+def save_swap(from_chain, from_token, amount, to_chain, to_token, quote, error=None):
     conn = sqlite3.connect('bridgette.db')
     c = conn.cursor()
-    c.execute("INSERT INTO swaps (timestamp, from_token, amount, to_token, quote, error) VALUES (?, ?, ?, ?, ?, ?)",
-              (datetime.now().isoformat(), from_token, amount, to_token, quote, error))
+    c.execute("INSERT INTO swaps (timestamp, from_chain, from_token, amount, to_chain, to_token, quote, error) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+              (datetime.now().isoformat(), from_chain, from_token, amount, to_chain, to_token, quote, error))
     conn.commit()
     conn.close()
 
@@ -73,18 +96,17 @@ def home():
 @app.route('/ticker')
 def get_ticker():
     bridgette = Bridgette()
-    if not exchange:
-        return jsonify({'message': 'Exchange setup failed', 'rates': {}})
+    rates = {}
     try:
-        pairs = ['ETH/USDT', 'BTC/USDT', 'XRP/USDT']
-        rates = {}
-        for pair in pairs:
-            try:
-                ticker = exchange.fetch_ticker(pair)
-                rates[pair] = f"{pair}: {ticker['last']}"
-            except Exception as e:
-                logger.error(f"Ticker fetch error for {pair}: {e}")
-                rates[pair] = f"{pair}: N/A"
+        if exchanges['cryptocom']:
+            ticker = exchanges['cryptocom'].fetch_ticker('ETH/USDT')
+            rates['ETH/USDT'] = f"ETH/USDT: {ticker['last']}"
+        if exchanges['binance']:
+            ticker = exchanges['binance'].fetch_ticker('BNB/USDT')
+            rates['BNB/USDT'] = f"BNB/USDT: {ticker['last']}"
+        if exchanges['solana']:
+            # Simplified Solana price fetch (mock for now)
+            rates['SOL/USDT'] = "SOL/USDT: 150.00"  # Replace with actual Solana price fetch
         return jsonify({'message': bridgette.talk(), 'rates': rates})
     except Exception as e:
         logger.error(f"Ticker fetch error: {e}")
@@ -92,35 +114,62 @@ def get_ticker():
 
 @app.route('/available_pairs')
 def available_pairs():
-    if not exchange:
-        logger.error("Exchange not initialized")
-        return jsonify({'error': 'Exchange not initialized', 'pairs': []})
+    pairs = {'cryptocom': [], 'binance': [], 'solana': []}
     try:
-        markets = exchange.load_markets()
-        pairs = [pair for pair in markets.keys() if markets[pair]['active'] and markets[pair]['quote'] == 'USDT']
+        if exchanges['cryptocom']:
+            markets = exchanges['cryptocom'].load_markets()
+            pairs['cryptocom'] = [pair for pair in markets.keys() if markets[pair]['active'] and markets[pair]['quote'] == 'USDT']
+        if exchanges['binance']:
+            markets = exchanges['binance'].load_markets()
+            pairs['binance'] = [pair for pair in markets.keys() if markets[pair]['active'] and markets[pair]['quote'] == 'USDT']
+        if exchanges['solana']:
+            # Mock Solana pairs (replace with actual Solana token pairs)
+            pairs['solana'] = ['SOL/USDT', 'SRM/USDT']
         logger.debug(f"Fetched pairs: {pairs}")
         return jsonify({'pairs': pairs})
     except Exception as e:
         logger.error(f"Pairs fetch error: {e}")
-        return jsonify({'error': str(e), 'pairs': []})
+        return jsonify({'error': str(e), 'pairs': {}})
 
 @app.route('/simulate_swap', methods=['POST'])
 def simulate_swap():
-    if not exchange:
-        return jsonify({'quote': 0, 'error': 'Exchange not initialized'})
     data = request.json
-    from_token = data.get('from')
+    from_chain = data.get('from_chain')
+    from_token = data.get('from_token')
     amount = data.get('amount')
-    to_token = data.get('to')
+    to_chain = data.get('to_chain')
+    to_token = data.get('to_token')
+
+    if from_chain not in exchanges or to_chain not in exchanges:
+        return jsonify({'quote': 0, 'error': 'Chain not supported'})
+
     try:
-        ticker = exchange.fetch_ticker(f'{from_token}/{to_token}')
-        rate = ticker['last']
+        # Simplified cross-chain rate simulation
+        rate = 1.0
+        if from_chain == 'cryptocom':
+            ticker = exchanges['cryptocom'].fetch_ticker(f'{from_token}/USDT')
+            rate *= ticker['last']
+        elif from_chain == 'binance':
+            ticker = exchanges['binance'].fetch_ticker(f'{from_token}/USDT')
+            rate *= ticker['last']
+        elif from_chain == 'solana':
+            rate *= 150.00  # Mock rate for SOL
+
+        if to_chain == 'cryptocom':
+            ticker = exchanges['cryptocom'].fetch_ticker(f'{to_token}/USDT')
+            rate /= ticker['last']
+        elif to_chain == 'binance':
+            ticker = exchanges['binance'].fetch_ticker(f'{to_token}/USDT')
+            rate /= ticker['last']
+        elif to_chain == 'solana':
+            rate /= 150.00  # Mock rate for SOL
+
         quote = amount * rate
-        save_swap(from_token, amount, to_token, quote)
+        save_swap(from_chain, from_token, amount, to_chain, to_token, quote)
         return jsonify({'quote': quote})
     except Exception as e:
         logger.error(f"Simulate swap error: {e}")
-        save_swap(from_token, amount, to_token, 0, str(e))
+        save_swap(from_chain, from_token, amount, to_chain, to_token, 0, str(e))
         return jsonify({'quote': 0, 'error': str(e)})
 
 @app.route('/history')
@@ -130,7 +179,7 @@ def get_history():
     c.execute("SELECT * FROM swaps ORDER BY timestamp DESC")
     history = c.fetchall()
     conn.close()
-    return jsonify({'history': [{'id': row[0], 'timestamp': row[1], 'from_token': row[2], 'amount': row[3], 'to_token': row[4], 'quote': row[5], 'error': row[6]} for row in history]})
+    return jsonify({'history': [{'id': row[0], 'timestamp': row[1], 'from_chain': row[2], 'from_token': row[3], 'amount': row[4], 'to_chain': row[5], 'to_token': row[6], 'quote': row[7], 'error': row[8]} for row in history]})
 
 @app.route('/analytics')
 def get_analytics():
