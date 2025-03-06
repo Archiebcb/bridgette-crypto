@@ -50,6 +50,15 @@
             position: relative;
             z-index: 10;
         }
+        .description {
+            padding: 15px;
+            background: rgba(28, 37, 38, 0.9);
+            border-radius: 5px;
+            margin-bottom: 20px;
+            text-align: center;
+            color: #00ccff;
+            text-shadow: 0 0 5px #00ccff;
+        }
         #bridge-container {
             position: relative;
             width: 100%;
@@ -93,7 +102,7 @@
         }
         #bridgette-avatar {
             position: absolute;
-            top: -80px;
+            top: 20px;
             left: 50%;
             transform: translateX(-50%);
             width: 250px;
@@ -101,6 +110,12 @@
             background: url('https://i.imgur.com/UeQAtCW.jpeg') no-repeat center;
             background-size: contain;
             z-index: 10;
+            animation: float 3s ease-in-out infinite;
+        }
+        @keyframes float {
+            0% { transform: translateX(-50%) translateY(0); }
+            50% { transform: translateX(-50%) translateY(-10px); }
+            100% { transform: translateX(-50%) translateY(0); }
         }
         #bridge-message {
             position: absolute;
@@ -187,6 +202,14 @@
             <a class="navbar-brand" href="#">Bridgette</a>
         </div>
     </nav>
+
+    <!-- Description -->
+    <div class="container">
+        <div class="description">
+            <h4>Welcome to Bridgette Crypto Bridge</h4>
+            <p>Bridgette is your futuristic gateway to seamless cryptocurrency swapping. Powered by advanced AI, she connects major exchanges to provide real-time rates and secure transactions. Bridge your assets with confidence and watch the crypto flow!</p>
+        </div>
+    </div>
 
     <!-- Main Dashboard -->
     <div class="container">
@@ -296,7 +319,7 @@
 
         // Handle swap request
         function requestSwap() {
-            const fromToken = document.getElementById('from-token').value;
+            const fromToken = document.getElement ofId('from-token').value;
             const amount = document.getElementById('amount').value;
             const toToken = document.getElementById('to-token').value;
 
