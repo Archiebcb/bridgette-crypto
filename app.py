@@ -1,7 +1,9 @@
 from flask import Flask, render_template, jsonify, request, send_from_directory
 import ccxt
 import random
+import sqlite3
 import logging
+from datetime import datetime
 
 app = Flask(__name__, static_folder='static')
 
@@ -37,6 +39,31 @@ def setup_exchange():
         return None
 
 exchange = setup_exchange()
+
+# Database setup
+def init_db():
+    conn = sqlite3.connect('bridgette.db')
+    c = conn.cursor()
+    c.execute('''CREATE TABLE IF NOT EXISTS swaps
+                 (id INTEGER PRIMARY KEY AUTOINCREMENT,
+                  timestamp TEXT,
+                  from_token TEXT,
+                  amount REAL,
+                  to_token TEXT,
+                  quote REAL,
+                  error TEXT)''')
+    conn.commit()
+    conn.close()
+
+init_db()
+
+def save_swap(from_token, amount, to_token, quote, error=None):
+    conn = sqlite3.connect('bridgette.db')
+    c = conn.cursor()
+    c.execute("INSERT INTO swaps (timestamp, from_token, amount, to_token, quote, error) VALUES (?, ?, ?, ?, ?, ?)",
+              (datetime.now().isoformat(), from_token, amount, to_token, quote, error))
+    conn.commit()
+    conn.close()
 
 @app.route('/')
 def home():
@@ -89,10 +116,30 @@ def simulate_swap():
         ticker = exchange.fetch_ticker(f'{from_token}/{to_token}')
         rate = ticker['last']
         quote = amount * rate
+        save_swap(from_token, amount, to_token, quote)
         return jsonify({'quote': quote})
     except Exception as e:
         logger.error(f"Simulate swap error: {e}")
+        save_swap(from_token, amount, to_token, 0, str(e))
         return jsonify({'quote': 0, 'error': str(e)})
+
+@app.route('/history')
+def get_history():
+    conn = sqlite3.connect('bridgette.db')
+    c = conn.cursor()
+    c.execute("SELECT * FROM swaps ORDER BY timestamp DESC")
+    history = c.fetchall()
+    conn.close()
+    return jsonify({'history': [{'id': row[0], 'timestamp': row[1], 'from_token': row[2], 'amount': row[3], 'to_token': row[4], 'quote': row[5], 'error': row[6]} for row in history]})
+
+@app.route('/analytics')
+def get_analytics():
+    conn = sqlite3.connect('bridgette.db')
+    c = conn.cursor()
+    c.execute("SELECT SUM(amount), MAX(quote) FROM swaps WHERE error IS NULL")
+    total_bridged, best_trade = c.fetchone()
+    conn.close()
+    return jsonify({'total_bridged': total_bridged or 0, 'best_trade': best_trade or 0})
 
 @app.route('/static/<path:filename>')
 def serve_static(filename):

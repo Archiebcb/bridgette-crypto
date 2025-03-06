@@ -51,7 +51,7 @@
             100% { transform: translate(0); }
         }
         #bridge-dashboard {
-            min-height: 90vh; /* Increased to allow more bottom space */
+            min-height: 90vh;
             padding: 40px;
             background: rgba(42, 61, 63, 0.6);
             border-radius: 15px;
@@ -81,7 +81,7 @@
         #bridge-container {
             position: relative;
             width: 100%;
-            height: 400px; /* Increased height for top-right placement */
+            height: 400px;
             margin-bottom: 20px;
             overflow: hidden;
         }
@@ -92,7 +92,7 @@
             position: relative;
             border-radius: 10px;
             overflow: hidden;
-            top: 150px; /* Adjusted for better visibility */
+            top: 150px;
             box-shadow: 0 0 15px #00ccff inset;
         }
         .bridge-segment {
@@ -243,6 +243,20 @@
         .select2-results__option--highlighted {
             background-color: #ff69b4 !important;
         }
+        .history-tab {
+            background: rgba(28, 37, 38, 0.7);
+            border-radius: 10px;
+            padding: 20px;
+            margin-top: 20px;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        .analytics {
+            background: rgba(47, 68, 70, 0.7);
+            border-radius: 10px;
+            padding: 20px;
+            margin-top: 20px;
+        }
         @media (max-width: 768px) {
             #bridge-dashboard { padding: 20px; }
             #bridge-message { font-size: 1.3em; }
@@ -251,7 +265,7 @@
             .description { font-size: 1.1em; }
             .holographic { width: 80px; height: 80px; }
             .input-group { flex-direction: column; }
-            #bridge-container { height: 250px; } /* Adjusted for mobile */
+            #bridge-container { height: 250px; }
         }
     </style>
     <!-- Google Fonts -->
@@ -326,6 +340,22 @@
                     <button class="btn btn-primary" onclick="requestSwap()">Swap</button>
                 </div>
             </div>
+            <!-- History Tab -->
+            <div class="col-md-12">
+                <div class="history-tab">
+                    <h5>Transaction History</h5>
+                    <ul id="history-list"></ul>
+                </div>
+            </div>
+            <!-- Analytics -->
+            <div class="col-md-12">
+                <div class="analytics">
+                    <h5>Analytics</h5>
+                    <p>Total Bridged: <span id="total-bridged">0</span></p>
+                    <p>Best Trade: <span id="best-trade">0</span></p>
+                    <div id="smart-suggestions"></div>
+                </div>
+            </div>
         </div>
         <!-- Holographic Element -->
         <div class="holographic"></div>
@@ -368,10 +398,7 @@
                     return response.json();
                 })
                 .then(data => {
-                    // Update main ticker
                     document.getElementById('ticker').innerText = `${data.message}\n${data.rates['ETH/USDT'] || 'No rate yet!'}`;
-
-                    // Update sidebar tickers
                     const tickers = [
                         { id: 'ticker-1', pair: 'ETH/USDT' },
                         { id: 'ticker-2', pair: 'BTC/USDT' },
@@ -491,9 +518,46 @@
                     chat.innerHTML += `<p>Quote: ${data.quote} ${toToken}</p>`;
                 }
                 chat.scrollTop = chat.scrollHeight;
+                updateHistory();
+                updateAnalytics();
             })
             .catch(error => console.error('Swap error:', error));
         }
+
+        // Update history
+        function updateHistory() {
+            fetch('/history')
+                .then(response => response.json())
+                .then(data => {
+                    const list = document.getElementById('history-list');
+                    list.innerHTML = '';
+                    data.history.forEach(item => {
+                        list.innerHTML += `<li>${item.timestamp} - ${item.amount} ${item.from_token} to ${item.to_token} = ${item.quote} ${item.to_token} ${item.error ? `(Error: ${item.error})` : ''}</li>`;
+                    });
+                })
+                .catch(error => console.error('History fetch error:', error));
+        }
+
+        // Update analytics
+        function updateAnalytics() {
+            fetch('/analytics')
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById('total-bridged').innerText = data.total_bridged.toFixed(2) || 0;
+                    document.getElementById('best-trade').innerText = data.best_trade.toFixed(2) || 0;
+                    // Simple smart suggestion
+                    if (data.best_trade > 0) {
+                        document.getElementById('smart-suggestions').innerText = 'Suggestion: Repeat your best trade pair for max profit!';
+                    }
+                })
+                .catch(error => console.error('Analytics fetch error:', error));
+        }
+
+        // Initial load
+        updateHistory();
+        updateAnalytics();
+        setInterval(updateHistory, 5000); // Refresh every 5 seconds
+        setInterval(updateAnalytics, 5000);
     </script>
 </body>
 </html>
