@@ -429,6 +429,8 @@
         let bridgeProgress = 0;
         let animationFrameId;
         let isAnimating = false;
+        const ANIMATION_DURATION = 3000; // 3 seconds
+        let animationStartTime = null;
 
         function initBridge() {
             const container = document.getElementById('interactive-bridge');
@@ -472,18 +474,24 @@
             container.appendChild(bridgeRenderer.domElement);
 
             animateBridge();
+            window.addEventListener('resize', () => {
+                bridgeCamera.aspect = container.offsetWidth / container.offsetHeight;
+                bridgeCamera.updateProjectionMatrix();
+                bridgeRenderer.setSize(container.offsetWidth, container.offsetHeight);
+            });
         }
 
-        function animateBridge() {
+        function animateBridge(time) {
             animationFrameId = requestAnimationFrame(animateBridge);
             if (isAnimating) {
-                if (bridgeProgress < 1) {
-                    bridgeProgress += 0.01;
-                    bridge.scale.x = bridgeProgress;
-                    pillars.forEach(pillar => {
-                        pillar.scale.y = bridgeProgress;
-                    });
-                } else {
+                if (!animationStartTime) animationStartTime = time;
+                const elapsed = time - animationStartTime;
+                bridgeProgress = Math.min(elapsed / ANIMATION_DURATION, 1);
+                bridge.scale.x = bridgeProgress;
+                pillars.forEach(pillar => {
+                    pillar.scale.y = bridgeProgress;
+                });
+                if (bridgeProgress >= 1) {
                     isAnimating = false;
                     stopBridgeAnimation();
                 }
@@ -498,6 +506,7 @@
                 pillar.scale.y = 0;
             });
             isAnimating = true;
+            animationStartTime = null;
             const message = document.getElementById('bridge-message');
             message.style.opacity = 0;
         }
@@ -507,16 +516,10 @@
             message.textContent = 'Your bridge has been built!';
             message.style.opacity = 1;
             const audio = new Audio('/static/bridge-complete.mp3');
-            audio.play();
+            audio.play().catch(error => console.log('Audio play failed:', error));
         }
 
         window.addEventListener('load', initBridge);
-        window.addEventListener('resize', () => {
-            const container = document.getElementById('interactive-bridge');
-            bridgeCamera.aspect = container.offsetWidth / container.offsetHeight;
-            bridgeCamera.updateProjectionMatrix();
-            bridgeRenderer.setSize(container.offsetWidth, container.offsetHeight);
-        });
 
         function requestSwap() {
             const fromChain = document.getElementById('from-chain').value;
