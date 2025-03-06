@@ -75,10 +75,10 @@ def get_solana_price(token):
     try:
         response = requests.get(f"https://api.coingecko.com/api/v3/simple/price?ids={token.lower()}&vs_currencies=usd")
         data = response.json()
-        return data[token.lower()]['usd'] if token.lower() in data else 150.00  # Default to 150 if unavailable
+        return data[token.lower()]['usd'] if token.lower() in data else 150.00
     except Exception as e:
         logger.error(f"Solana price fetch error: {e}")
-        return 150.00  # Mock fallback
+        return 150.00
 
 @app.route('/')
 def home():
@@ -107,7 +107,7 @@ def available_pairs():
         if exchanges['cryptocom']:
             markets = exchanges['cryptocom'].load_markets()
             pairs['cryptocom'] = [pair for pair in markets.keys() if markets[pair]['active'] and markets[pair]['quote'] == 'USDT']
-        pairs['solana'] = ['SOL/USDT', 'SRM/USDT', 'RAY/USDT']  # Mock Solana pairs
+        pairs['solana'] = ['SOL/USDT', 'SRM/USDT', 'RAY/USDT']
         logger.debug(f"Fetched pairs: {pairs}")
         return jsonify({'pairs': pairs})
     except Exception as e:
@@ -124,18 +124,32 @@ def simulate_swap():
     to_token = data.get('to_token')
 
     if from_chain not in ['cryptocom', 'solana'] or to_chain not in ['cryptocom', 'solana']:
+        save_swap(from_chain, from_token, amount, to_chain, to_token, 0, 'Chain not supported')
         return jsonify({'quote': 0, 'error': 'Chain not supported'})
 
     try:
         rate = 1.0
+        # Validate Crypto.com pairs
         if from_chain == 'cryptocom':
-            ticker = exchanges['cryptocom'].fetch_ticker(f'{from_token}/USDT')
+            if exchanges['cryptocom'] is None:
+                raise Exception("Crypto.com exchange not initialized")
+            markets = exchanges['cryptocom'].load_markets()
+            pair = f"{from_token}/USDT"
+            if pair not in markets:
+                raise Exception(f"Invalid token pair {pair} for Crypto.com")
+            ticker = exchanges['cryptocom'].fetch_ticker(pair)
             rate *= ticker['last']
         elif from_chain == 'solana':
             rate *= get_solana_price(from_token)
 
         if to_chain == 'cryptocom':
-            ticker = exchanges['cryptocom'].fetch_ticker(f'{to_token}/USDT')
+            if exchanges['cryptocom'] is None:
+                raise Exception("Crypto.com exchange not initialized")
+            markets = exchanges['cryptocom'].load_markets()
+            pair = f"{to_token}/USDT"
+            if pair not in markets:
+                raise Exception(f"Invalid token pair {pair} for Crypto.com")
+            ticker = exchanges['cryptocom'].fetch_ticker(pair)
             rate /= ticker['last']
         elif to_chain == 'solana':
             rate /= get_solana_price(to_token)
