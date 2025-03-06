@@ -63,7 +63,7 @@ def available_pairs():
         return jsonify({'error': 'Exchange not initialized', 'pairs': []})
     try:
         markets = exchange.load_markets()
-        pairs = [pair for pair in markets.keys() if markets[pair]['active'] and markets[pair]['quote'] == 'USDT']  # Verified USDT pairs
+        pairs = [pair for pair in markets.keys() if markets[pair]['active'] and markets[pair]['quote'] == 'USDT']
         logger.debug(f"Fetched pairs: {pairs}")
         return jsonify({'pairs': pairs})
     except Exception as e:

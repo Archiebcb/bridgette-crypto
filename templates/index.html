@@ -254,7 +254,7 @@
     <!-- Scripts at the bottom -->
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-0pUGZvbkmvJppAGzjJyMA07S/0eWeFfocmtiV8u6Qv0aK3FrD3SAfCtC+3jFM+T8" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" crossorigin="anonymous"></script>
     <script>
         // Initialize Select2 for dropdowns with search
         $(document).ready(function() {
@@ -262,7 +262,7 @@
                 placeholder: "Search for a token",
                 allowClear: true,
                 width: '100%',
-                minimumResultsForSearch: 0, // Always show search
+                minimumResultsForSearch: 0,
                 matcher: function(params, data) {
                     if ($.trim(params.term) === '') {
                         return data;
@@ -311,7 +311,7 @@
                         fromSelect.innerHTML += `<option value="${token}">${token}</option>`;
                         toSelect.innerHTML += `<option value="${token}">${token}</option>`;
                     });
-                    $('.token-select').trigger('change'); // Refresh Select2
+                    $('.token-select').trigger('change');
                 })
                 .catch(error => console.error('Pairs fetch error:', error));
         }
@@ -319,7 +319,7 @@
 
         // Handle swap request
         function requestSwap() {
-            const fromToken = document.getElement ofId('from-token').value;
+            const fromToken = document.getElementById('from-token').value;
             const amount = document.getElementById('amount').value;
             const toToken = document.getElementById('to-token').value;
 
