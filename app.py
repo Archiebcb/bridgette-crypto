@@ -6,6 +6,7 @@ import logging
 from datetime import datetime
 import solana.rpc.api as solrpc
 from solana.publickey import PublicKey
+import requests
 
 app = Flask(__name__, static_folder='static')
 
@@ -40,16 +41,6 @@ def setup_exchanges():
     except Exception as e:
         logger.error(f"Crypto.com setup failed: {e}")
         exchanges['cryptocom'] = None
-
-    try:
-        exchanges['binance'] = ccxt.binance({
-            'apiKey': 'YOUR_BINANCE_API_KEY',  # Replace with your Binance API key
-            'secret': 'YOUR_BINANCE_SECRET',   # Replace with your Binance secret
-            'enableRateLimit': True,
-        })
-    except Exception as e:
-        logger.error(f"Binance setup failed: {e}")
-        exchanges['binance'] = None
 
     try:
         exchanges['solana'] = solrpc.Client("https://api.mainnet-beta.solana.com")
@@ -88,6 +79,16 @@ def save_swap(from_chain, from_token, amount, to_chain, to_token, quote, error=N
     conn.commit()
     conn.close()
 
+def get_solana_price(token):
+    try:
+        # Use CoinGecko API as a simple public price feed (mock for now)
+        response = requests.get(f"https://api.coingecko.com/api/v3/simple/price?ids={token.lower()}&vs_currencies=usd")
+        data = response.json()
+        return data[token.lower()]['usd'] if token.lower() in data else 150.00  # Default to 150 if unavailable
+    except Exception as e:
+        logger.error(f"Solana price fetch error: {e}")
+        return 150.00  # Mock fallback
+
 @app.route('/')
 def home():
     bridgette = Bridgette()
@@ -101,12 +102,9 @@ def get_ticker():
         if exchanges['cryptocom']:
             ticker = exchanges['cryptocom'].fetch_ticker('ETH/USDT')
             rates['ETH/USDT'] = f"ETH/USDT: {ticker['last']}"
-        if exchanges['binance']:
-            ticker = exchanges['binance'].fetch_ticker('BNB/USDT')
-            rates['BNB/USDT'] = f"BNB/USDT: {ticker['last']}"
         if exchanges['solana']:
-            # Simplified Solana price fetch (mock for now)
-            rates['SOL/USDT'] = "SOL/USDT: 150.00"  # Replace with actual Solana price fetch
+            sol_price = get_solana_price('solana')
+            rates['SOL/USDT'] = f"SOL/USDT: {sol_price}"
         return jsonify({'message': bridgette.talk(), 'rates': rates})
     except Exception as e:
         logger.error(f"Ticker fetch error: {e}")
@@ -114,17 +112,14 @@ def get_ticker():
 
 @app.route('/available_pairs')
 def available_pairs():
-    pairs = {'cryptocom': [], 'binance': [], 'solana': []}
+    pairs = {'cryptocom': [], 'solana': []}
     try:
         if exchanges['cryptocom']:
             markets = exchanges['cryptocom'].load_markets()
             pairs['cryptocom'] = [pair for pair in markets.keys() if markets[pair]['active'] and markets[pair]['quote'] == 'USDT']
-        if exchanges['binance']:
-            markets = exchanges['binance'].load_markets()
-            pairs['binance'] = [pair for pair in markets.keys() if markets[pair]['active'] and markets[pair]['quote'] == 'USDT']
         if exchanges['solana']:
-            # Mock Solana pairs (replace with actual Solana token pairs)
-            pairs['solana'] = ['SOL/USDT', 'SRM/USDT']
+            # Mock Solana pairs (using CoinGecko-compatible tokens)
+            pairs['solana'] = ['SOL/USDT', 'SRM/USDT', 'RAY/USDT']  # Expand with real pairs later
         logger.debug(f"Fetched pairs: {pairs}")
         return jsonify({'pairs': pairs})
     except Exception as e:
@@ -149,20 +144,14 @@ def simulate_swap():
         if from_chain == 'cryptocom':
             ticker = exchanges['cryptocom'].fetch_ticker(f'{from_token}/USDT')
             rate *= ticker['last']
-        elif from_chain == 'binance':
-            ticker = exchanges['binance'].fetch_ticker(f'{from_token}/USDT')
-            rate *= ticker['last']
         elif from_chain == 'solana':
-            rate *= 150.00  # Mock rate for SOL
+            rate *= get_solana_price(from_token)
 
         if to_chain == 'cryptocom':
             ticker = exchanges['cryptocom'].fetch_ticker(f'{to_token}/USDT')
             rate /= ticker['last']
-        elif to_chain == 'binance':
-            ticker = exchanges['binance'].fetch_ticker(f'{to_token}/USDT')
-            rate /= ticker['last']
         elif to_chain == 'solana':
-            rate /= 150.00  # Mock rate for SOL
+            rate /= get_solana_price(to_token)
 
         quote = amount * rate
         save_swap(from_chain, from_token, amount, to_chain, to_token, quote)

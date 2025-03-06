@@ -300,8 +300,7 @@
                             <h5>Market Stats</h5>
                             <div id="market-ticker-container">
                                 <p class="ticker" id="ticker-1">ETH/USDT: Loading...</p>
-                                <p class="ticker" id="ticker-2">BNB/USDT: Loading...</p>
-                                <p class="ticker" id="ticker-3">SOL/USDT: Loading...</p>
+                                <p class="ticker" id="ticker-2">SOL/USDT: Loading...</p>
                             </div>
                         </div>
                     </div>
@@ -311,7 +310,6 @@
                             <select class="form-control chain-select" id="from-chain">
                                 <option value="">Select From Chain</option>
                                 <option value="cryptocom">Ethereum (Crypto.com)</option>
-                                <option value="binance">Binance Smart Chain</option>
                                 <option value="solana">Solana</option>
                             </select>
                             <select class="form-control token-select" id="from-token">
@@ -321,7 +319,6 @@
                             <select class="form-control chain-select" id="to-chain">
                                 <option value="">Select To Chain</option>
                                 <option value="cryptocom">Ethereum (Crypto.com)</option>
-                                <option value="binance">Binance Smart Chain</option>
                                 <option value="solana">Solana</option>
                             </select>
                             <select class="form-control token-select" id="to-token">
@@ -425,8 +422,7 @@
                     document.getElementById('ticker').innerText = `${data.message}\n${data.rates['ETH/USDT'] || 'No rate yet!'}`;
                     const tickers = [
                         { id: 'ticker-1', pair: 'ETH/USDT' },
-                        { id: 'ticker-2', pair: 'BNB/USDT' },
-                        { id: 'ticker-3', pair: 'SOL/USDT' }
+                        { id: 'ticker-2', pair: 'SOL/USDT' }
                     ];
                     let currentIndex = 0;
 
