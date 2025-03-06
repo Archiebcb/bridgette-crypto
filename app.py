@@ -1,4 +1,4 @@
-from flask import Flask, render_template, jsonify
+from flask import Flask, render_template, jsonify, request
 import ccxt
 import random
 
@@ -29,7 +29,6 @@ def setup_exchange():
 
 exchange = setup_exchange()
 
-# Routes
 @app.route('/')
 def home():
     bridgette = Bridgette()
@@ -44,6 +43,16 @@ def get_ticker():
         return jsonify({'message': bridgette.talk(), 'rate': f"ETH/USDT: {rate}"})
     except Exception as e:
         return jsonify({'message': f"Oops, babe: {e}", 'rate': None})
+
+@app.route('/simulate_swap', methods=['POST'])
+def simulate_swap():
+    data = request.json
+    from_token = data.get('from')
+    amount = data.get('amount')
+    to_token = data.get('to')
+    # Simulate a quote (replace with real swap logic later)
+    quote = amount * 2400  # Fake rate (e.g., 1 ETH = 2400 USDT)
+    return jsonify({'quote': quote})
 
 if __name__ == "__main__":
     app.run(debug=True)
