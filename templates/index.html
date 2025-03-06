@@ -81,8 +81,8 @@
         #bridge-container {
             position: relative;
             width: 100%;
-            height: 400px;
-            margin-bottom: 40px;
+            height: 300px; /* Adjusted height for bottom placement */
+            margin-top: 40px;
             overflow: hidden;
         }
         #bridge-construction {
@@ -92,7 +92,7 @@
             position: relative;
             border-radius: 10px;
             overflow: hidden;
-            top: 150px;
+            top: 120px;
             box-shadow: 0 0 15px #00ccff inset;
         }
         .bridge-segment {
@@ -162,7 +162,7 @@
             background: rgba(47, 68, 70, 0.7);
             border-radius: 10px;
             padding: 25px;
-            min-height: 250px;
+            min-height: 200px;
             overflow-y: auto;
             border-left: 4px solid #00ccff;
             margin-bottom: 25px;
@@ -189,6 +189,8 @@
         }
         .input-group {
             margin-top: 25px;
+            display: flex;
+            align-items: center;
         }
         .btn-primary {
             background-color: #ff69b4;
@@ -208,7 +210,6 @@
             padding: 25px;
             border-radius: 10px;
             box-shadow: 0 0 15px rgba(0, 204, 255, 0.3);
-            margin-right: 25px;
         }
         .sidebar h5 {
             color: #00ccff;
@@ -245,10 +246,11 @@
         @media (max-width: 768px) {
             #bridge-dashboard { padding: 20px; }
             #bridge-message { font-size: 1.3em; }
-            .sidebar { margin-right: 0; margin-bottom: 20px; }
+            .sidebar { margin-bottom: 20px; }
             .navbar-brand { font-size: 1.5em; }
             .description { font-size: 1.1em; }
             .holographic { width: 80px; height: 80px; }
+            .input-group { flex-direction: column; }
         }
     </style>
     <!-- Google Fonts -->
@@ -273,19 +275,44 @@
     <!-- Main Dashboard -->
     <div class="container">
         <div class="row" id="bridge-dashboard">
-            <!-- Sidebar -->
-            <div class="col-md-3">
-                <div class="sidebar">
-                    <h5>Market Stats</h5>
-                    <div id="market-ticker-container">
-                        <p class="ticker" id="ticker-1">ETH/USDT: Loading...</p>
-                        <p class="ticker" id="ticker-2">BTC/USDT: Loading...</p>
-                        <p class="ticker" id="ticker-3">XRP/USDT: Loading...</p>
+            <!-- Top Row: Tickers and Swap Inputs -->
+            <div class="col-md-12">
+                <div class="row">
+                    <!-- Live Tickers -->
+                    <div class="col-md-3">
+                        <div class="sidebar">
+                            <h5>Market Stats</h5>
+                            <div id="market-ticker-container">
+                                <p class="ticker" id="ticker-1">ETH/USDT: Loading...</p>
+                                <p class="ticker" id="ticker-2">BTC/USDT: Loading...</p>
+                                <p class="ticker" id="ticker-3">XRP/USDT: Loading...</p>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Swap Inputs -->
+                    <div class="col-md-9">
+                        <div class="input-group">
+                            <select class="form-control token-select" id="from-token">
+                                <option value="">Select From Token</option>
+                            </select>
+                            <input type="number" class="form-control" id="amount" placeholder="Amount" step="0.01" aria-label="Amount">
+                            <select class="form-control token-select" id="to-token">
+                                <option value="">Select To Token</option>
+                            </select>
+                            <button class="btn btn-primary" onclick="requestSwap()">Swap</button>
+                        </div>
                     </div>
                 </div>
             </div>
-            <!-- Main Content -->
-            <div class="col-md-9">
+            <!-- Chat Box -->
+            <div class="col-md-12">
+                <div class="chat-box">
+                    <p>{{ greeting }}</p>
+                    <p class="ticker" id="ticker">Loading rates...</p>
+                </div>
+            </div>
+            <!-- Bridge Animation -->
+            <div class="col-md-12">
                 <div id="bridge-container">
                     <div id="bridge-construction">
                         <div id="segment-1" class="bridge-segment"></div>
@@ -296,21 +323,6 @@
                         <div id="segment-6" class="bridge-segment"></div>
                     </div>
                     <div id="bridge-message"></div>
-                </div>
-                <div class="chat-box">
-                    <p>{{ greeting }}</p>
-                    <p class="ticker" id="ticker">Loading rates...</p>
-                </div>
-                <!-- Swap Input with Enhanced Dropdowns -->
-                <div class="input-group">
-                    <select class="form-control token-select" id="from-token">
-                        <option value="">Select From Token</option>
-                    </select>
-                    <input type="number" class="form-control" id="amount" placeholder="Amount" step="0.01" aria-label="Amount">
-                    <select class="form-control token-select" id="to-token">
-                        <option value="">Select To Token</option>
-                    </select>
-                    <button class="btn btn-primary" onclick="requestSwap()">Swap</button>
                 </div>
             </div>
         </div>
@@ -375,8 +387,8 @@
                     }
 
                     cycleTickers();
-                    setInterval(cycleTickers, 3000); // Cycle every 3 seconds
-                    setTimeout(updateTicker, 5000); // Fetch new rates every 5 seconds
+                    setInterval(cycleTickers, 3000);
+                    setTimeout(updateTicker, 5000);
                 })
                 .catch(error => console.error('Ticker fetch error:', error));
         }
@@ -452,7 +464,6 @@
                 const message = document.getElementById('bridge-message');
                 message.textContent = 'Your bridge has been built!';
                 message.style.opacity = 1;
-                // Play sound on completion
                 const audio = new Audio('/static/bridge-complete.mp3');
                 audio.play();
             }, delay + 500);
