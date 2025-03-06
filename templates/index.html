@@ -6,6 +6,8 @@
     <title>Bridgette Crypto Bridge</title>
     <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Select2 for enhanced dropdowns -->
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet">
     <style>
         body {
             background: url('https://images.unsplash.com/photo-1541701494587-cb58502866ab?q=80&w=2070&auto=format&fit=crop') no-repeat center fixed;
@@ -14,10 +16,23 @@
             font-family: 'Orbitron', sans-serif;
             height: 100vh;
             overflow-y: auto;
+            position: relative;
+        }
+        body::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5); /* Subtle overlay */
+            z-index: 0;
         }
         .navbar {
             background: linear-gradient(90deg, #1c2526, #2a3d3f);
             border-bottom: 2px solid #00ccff;
+            position: relative;
+            z-index: 10;
         }
         .navbar-brand {
             font-size: 1.8em;
@@ -32,11 +47,13 @@
             border-radius: 10px;
             box-shadow: 0 0 20px rgba(0, 204, 255, 0.5);
             margin-top: 20px;
+            position: relative;
+            z-index: 10;
         }
         #bridge-container {
             position: relative;
             width: 100%;
-            height: 200px;
+            height: 250px;
             display: none;
             margin-bottom: 20px;
         }
@@ -47,6 +64,7 @@
             position: relative;
             border-radius: 5px;
             overflow: hidden;
+            top: 50px;
         }
         .bridge-segment {
             position: absolute;
@@ -75,16 +93,17 @@
         }
         #bridgette-avatar {
             position: absolute;
-            top: -100px;
+            top: -50px;
             left: 50%;
             transform: translateX(-50%);
-            width: 120px;
-            height: 120px;
-            background: url('https://images.unsplash.com/photo-1618005182384-9d4e1d3a740b?q=80&w=2070&auto=format&fit=crop') no-repeat center;
+            width: 200px;
+            height: 200px;
+            background: url('https://i.imgur.com/placeholder.jpg') no-repeat center;
             background-size: cover;
             border: 3px solid #ff69b4;
             border-radius: 50%;
             animation: pulse 2s infinite alternate;
+            z-index: 10;
         }
         @keyframes pulse {
             0% { box-shadow: 0 0 5px #ff69b4; }
@@ -136,14 +155,40 @@
             color: #00ccff;
             text-shadow: 0 0 5px #00ccff;
         }
+        .select2-container--default .select2-selection--single {
+            background-color: #2f4446;
+            border: 1px solid #00ccff;
+            color: #e0e0e0;
+            height: 38px;
+        }
+        .select2-container--default .select2-selection--single .select2-selection__rendered {
+            color: #e0e0e0;
+            line-height: 38px;
+        }
+        .select2-container--default .select2-selection--single .select2-selection__arrow {
+            height: 38px;
+        }
+        .select2-dropdown {
+            background-color: #2f4446;
+            border: 1px solid #00ccff;
+        }
+        .select2-results__option {
+            color: #e0e0e0;
+        }
+        .select2-results__option--highlighted {
+            background-color: #ff69b4 !important;
+        }
         @media (max-width: 768px) {
             #bridge-dashboard { padding: 10px; }
-            #bridgette-avatar { width: 80px; height: 80px; top: -70px; }
+            #bridgette-avatar { width: 150px; height: 150px; top: -40px; }
             #bridge-message { font-size: 1em; }
         }
     </style>
     <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap" rel="stylesheet">
+    <!-- Select2 JS -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
     <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 </head>
@@ -180,11 +225,15 @@
                     <p>{{ greeting }}</p>
                     <p class="ticker" id="ticker">Loading rates...</p>
                 </div>
-                <!-- Swap Input -->
+                <!-- Swap Input with Enhanced Dropdowns -->
                 <div class="input-group">
-                    <input type="text" class="form-control" id="from-token" placeholder="From (e.g., ETH)" aria-label="From Token">
+                    <select class="form-control token-select" id="from-token">
+                        <option value="">Select From Token</option>
+                    </select>
                     <input type="number" class="form-control" id="amount" placeholder="Amount" step="0.01" aria-label="Amount">
-                    <input type="text" class="form-control" id="to-token" placeholder="To (e.g., USDT)" aria-label="To Token">
+                    <select class="form-control token-select" id="to-token">
+                        <option value="">Select To Token</option>
+                    </select>
                     <button class="btn btn-primary" onclick="requestSwap()">Swap</button>
                 </div>
             </div>
@@ -192,6 +241,16 @@
     </div>
 
     <script>
+        // Initialize Select2 for dropdowns
+        $(document).ready(function() {
+            $('.token-select').select2({
+                placeholder: "Select a token",
+                allowClear: true,
+                width: '100%'
+            });
+        });
+
+        // Populate ticker
         function updateTicker() {
             fetch('/ticker')
                 .then(response => response.json())
@@ -204,6 +263,35 @@
         }
         updateTicker();
 
+        // Populate token dropdowns
+        function populateTokens() {
+            fetch('/available_pairs')
+                .then(response => response.json())
+                .then(data => {
+                    const fromSelect = document.getElementById('from-token');
+                    const toSelect = document.getElementById('to-token');
+                    const uniqueTokens = new Set();
+                    data.pairs.forEach(pair => {
+                        const [from, to] = pair.split('/');
+                        uniqueTokens.add(from);
+                        uniqueTokens.add(to);
+                    });
+                    uniqueTokens.forEach(token => {
+                        fromSelect.innerHTML += `<option value="${token}">${token}</option>`;
+                        toSelect.innerHTML += `<option value="${token}">${token}</option>`;
+                    });
+                    // Reinitialize Select2 after updating options
+                    $('.token-select').select2({
+                        placeholder: "Select a token",
+                        allowClear: true,
+                        width: '100%'
+                    });
+                })
+                .catch(error => console.error('Pairs fetch error:', error));
+        }
+        populateTokens();
+
+        // Handle swap request
         function requestSwap() {
             const fromToken = document.getElementById('from-token').value;
             const amount = document.getElementById('amount').value;
@@ -214,11 +302,9 @@
                 return;
             }
 
-            // Show bridge container
             const container = document.getElementById('bridge-container');
             container.style.display = 'block';
 
-            // Start bridge-building animation
             const segments = [
                 document.getElementById('segment-1'),
                 document.getElementById('segment-2'),
@@ -228,7 +314,6 @@
             segments.forEach(segment => {
                 setTimeout(() => {
                     segment.style.width = '33.33%';
-                    // Add particles
                     for (let i = 0; i < 5; i++) {
                         let particle = document.createElement('div');
                         particle.className = 'particle';
@@ -240,7 +325,6 @@
                 delay += 500;
             });
 
-            // Simulate backend request
             fetch('/simulate_swap', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -248,14 +332,16 @@
             })
             .then(response => response.json())
             .then(data => {
-                segments.forEach(segment => {
-                    segment.classList.add('bridge-complete');
-                });
+                segments.forEach(segment => segment.classList.add('bridge-complete'));
                 const message = document.getElementById('bridge-message');
                 message.textContent = 'Your bridge has been built!';
                 message.style.opacity = 1;
                 const chat = document.querySelector('.chat-box');
-                chat.innerHTML += `<p>Quote: ${data.quote} ${toToken}</p>`;
+                if (data.error) {
+                    chat.innerHTML += `<p>Error: ${data.error}</p>`;
+                } else {
+                    chat.innerHTML += `<p>Quote: ${data.quote} ${toToken}</p>`;
+                }
                 chat.scrollTop = chat.scrollHeight;
             })
             .catch(error => console.error('Swap error:', error));
