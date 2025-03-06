@@ -89,7 +89,11 @@ def simulate_swap():
 
 @app.route('/static/<path:filename>')
 def serve_static(filename):
-    return send_from_directory(app.static_folder, filename)
+    try:
+        return send_from_directory(app.static_folder, filename)
+    except Exception as e:
+        logger.error(f"Static file error: {e}")
+        return "Static file not found", 404
 
 if __name__ == "__main__":
     app.run(debug=True)
