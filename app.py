@@ -26,11 +26,15 @@ class Bridgette:
 
 # Crypto.com setup
 def setup_exchange():
-    return ccxt.cryptocom({
-        'apiKey': 'qs8bkoi6De3se4D6Smw2Tw',
-        'secret': 'cxakp_SbQK3oSt3n5mVFqi6opCTk',
-        'enableRateLimit': True,
-    })
+    try:
+        return ccxt.cryptocom({
+            'apiKey': 'qs8bkoi6De3se4D6Smw2Tw',
+            'secret': 'cxakp_SbQK3oSt3n5mVFqi6opCTk',
+            'enableRateLimit': True,
+        })
+    except Exception as e:
+        logger.error(f"Exchange setup failed: {e}")
+        return None
 
 exchange = setup_exchange()
 
@@ -42,6 +46,8 @@ def home():
 @app.route('/ticker')
 def get_ticker():
     bridgette = Bridgette()
+    if not exchange:
+        return jsonify({'message': 'Exchange setup failed', 'rate': None})
     try:
         ticker = exchange.fetch_ticker('ETH/USDT')
         rate = ticker['last']
@@ -52,6 +58,9 @@ def get_ticker():
 
 @app.route('/available_pairs')
 def available_pairs():
+    if not exchange:
+        logger.error("Exchange not initialized")
+        return jsonify({'error': 'Exchange not initialized', 'pairs': []})
     try:
         markets = exchange.load_markets()
         pairs = [pair for pair in markets.keys() if markets[pair]['active'] and markets[pair]['quote'] == 'USDT']  # Verified USDT pairs
@@ -63,6 +72,8 @@ def available_pairs():
 
 @app.route('/simulate_swap', methods=['POST'])
 def simulate_swap():
+    if not exchange:
+        return jsonify({'quote': 0, 'error': 'Exchange not initialized'})
     data = request.json
     from_token = data.get('from')
     amount = data.get('amount')
