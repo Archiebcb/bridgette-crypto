@@ -27,7 +27,7 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(0, 0, 0, 0.4); /* Reduced opacity for more background visibility */
+            background: rgba(0, 0, 0, 0.4); /* Transparent overlay */
             z-index: 1;
         }
         .navbar {
@@ -44,14 +44,14 @@
         }
         #bridge-dashboard {
             min-height: 80vh;
-            padding: 40px; /* Increased padding for airiness */
-            background: rgba(42, 61, 63, 0.6); /* Reduced opacity for more transparency */
+            padding: 40px;
+            background: rgba(42, 61, 63, 0.6);
             border-radius: 15px;
             box-shadow: 0 0 30px rgba(0, 204, 255, 0.7);
-            margin-top: 50px; /* Increased margin for better spacing */
+            margin-top: 50px;
             position: relative;
             z-index: 10;
-            backdrop-filter: blur(5px); /* Optional blur effect */
+            backdrop-filter: blur(5px);
         }
         .description {
             padding: 25px;
@@ -66,59 +66,71 @@
         #bridge-container {
             position: relative;
             width: 100%;
-            height: 350px;
+            height: 400px; /* Increased height for more dramatic effect */
             margin-bottom: 40px;
+            overflow: hidden;
         }
         #bridge-construction {
             width: 100%;
-            height: 15px;
-            background: #333;
+            height: 20px; /* Thicker bridge */
+            background: rgba(51, 51, 51, 0.3);
             position: relative;
             border-radius: 10px;
             overflow: hidden;
-            top: 120px;
+            top: 150px;
+            box-shadow: 0 0 15px #00ccff inset; /* Neon glow */
         }
         .bridge-segment {
             position: absolute;
             height: 100%;
-            background: #00ccff;
-            transition: width 0.5s ease-in-out;
+            background: linear-gradient(90deg, #00ccff, #ff69b4);
+            border-radius: 10px;
+            box-shadow: 0 0 10px #00ccff; /* Glowing effect */
+            transition: width 0.3s ease-in-out, transform 0.3s ease-in-out;
+            transform-origin: left;
         }
         #segment-1 { left: 0; width: 0; }
-        #segment-2 { left: 33.33%; width: 0; }
-        #segment-3 { left: 66.66%; width: 0; }
+        #segment-2 { left: 16.67%; width: 0; }
+        #segment-3 { left: 33.33%; width: 0; }
+        #segment-4 { left: 50%; width: 0; }
+        #segment-5 { left: 66.67%; width: 0; }
+        #segment-6 { left: 83.33%; width: 0; }
         .bridge-complete {
             width: 100% !important;
-            background: linear-gradient(90deg, #00ccff, #ff69b4) !important;
+            transform: scale(1.1); /* Slight scale for drama */
+            opacity: 1;
+            transition: width 0.5s ease-out, transform 0.5s ease-out, opacity 0.5s ease-out;
+            box-shadow: 0 0 20px #ff69b4, 0 0 30px #00ccff; /* Enhanced glow on completion */
         }
         .particle {
             position: absolute;
-            width: 6px;
-            height: 6px;
-            background: #ff69b4;
+            width: 8px;
+            height: 8px;
+            background: radial-gradient(circle, #ff69b4, #00ccff);
             border-radius: 50%;
-            animation: sparkle 1s infinite;
+            animation: sparkle 1.5s infinite;
         }
         @keyframes sparkle {
-            0% { transform: translateY(0); opacity: 1; }
-            100% { transform: translateY(-60px); opacity: 0; }
+            0% { transform: translateY(0) scale(1); opacity: 1; }
+            50% { transform: translateY(-80px) scale(1.5); opacity: 0.8; }
+            100% { transform: translateY(-160px) scale(0); opacity: 0; }
         }
         #bridgette-avatar {
-            display: none; /* Removed since image is now background */
+            display: none;
         }
         #bridge-message {
             position: absolute;
             bottom: 20px;
             left: 50%;
             transform: translateX(-50%);
-            font-size: 1.8em;
+            font-size: 2em;
             color: #ff69b4;
-            text-shadow: 0 0 15px #ff69b4;
+            text-shadow: 0 0 20px #ff69b4, 0 0 10px #00ccff;
             opacity: 0;
-            transition: opacity 0.5s;
+            transition: opacity 0.5s ease-in;
         }
         .chat-box {
-            background: rgba(47, 68, 70, 0.7); /* Reduced opacity */
+            background: rgba(47, 68, 70, 0.7);
             border-radius: 10px;
             padding: 25px;
             min-height: 250px;
@@ -141,13 +153,15 @@
             transition: all 0.3s;
             padding: 12px 25px;
             font-size: 1.2em;
+            box-shadow: 0 0 10px #ff69b4;
         }
         .btn-primary:hover {
             background-color: #ff85c0;
             border-color: #ff85c0;
+            box-shadow: 0 0 15px #ff85c0;
         }
         .sidebar {
-            background: rgba(28, 37, 38, 0.7); /* Reduced opacity */
+            background: rgba(28, 37, 38, 0.7);
             padding: 25px;
             border-radius: 10px;
             box-shadow: 0 0 15px rgba(0, 204, 255, 0.3);
@@ -159,7 +173,7 @@
             font-size: 1.4em;
         }
         .select2-container--default .select2-selection--single {
-            background-color: rgba(47, 68, 70, 0.7); /* Reduced opacity */
+            background-color: rgba(47, 68, 70, 0.7);
             border: 2px solid #00ccff;
             color: #e0e0e0;
             height: 50px;
@@ -174,7 +188,7 @@
             height: 50px;
         }
         .select2-dropdown {
-            background-color: rgba(47, 68, 70, 0.7); /* Reduced opacity */
+            background-color: rgba(47, 68, 70, 0.7);
             border: 2px solid #00ccff;
             border-radius: 5px;
         }
@@ -229,6 +243,9 @@
                         <div id="segment-1" class="bridge-segment"></div>
                         <div id="segment-2" class="bridge-segment"></div>
                         <div id="segment-3" class="bridge-segment"></div>
+                        <div id="segment-4" class="bridge-segment"></div>
+                        <div id="segment-5" class="bridge-segment"></div>
+                        <div id="segment-6" class="bridge-segment"></div>
                     </div>
                     <div id="bridge-message"></div>
                 </div>
@@ -332,26 +349,39 @@
             }
 
             const container = document.getElementById('bridge-container');
-
             const segments = [
                 document.getElementById('segment-1'),
                 document.getElementById('segment-2'),
-                document.getElementById('segment-3')
+                document.getElementById('segment-3'),
+                document.getElementById('segment-4'),
+                document.getElementById('segment-5'),
+                document.getElementById('segment-6')
             ];
             let delay = 0;
             segments.forEach(segment => {
                 setTimeout(() => {
-                    segment.style.width = '33.33%';
-                    for (let i = 0; i < 5; i++) {
+                    segment.style.width = '16.67%'; // Adjusted for 6 segments
+                    for (let i = 0; i < 10; i++) { // Increased particle count
                         let particle = document.createElement('div');
                         particle.className = 'particle';
                         particle.style.left = `${Math.random() * 100}%`;
-                        particle.style.animationDelay = `${Math.random()}s`;
-                        segment.appendChild(particle);
+                        particle.style.top = `${Math.random() * 50 + 50}%`; // Position above bridge
+                        particle.style.animationDelay = `${Math.random() * 1}s`;
+                        container.appendChild(particle);
                     }
                 }, delay);
-                delay += 500;
+                delay += 300; // Faster animation for more segments
             });
+
+            setTimeout(() => {
+                segments.forEach(segment => segment.classList.add('bridge-complete'));
+                const message = document.getElementById('bridge-message');
+                message.textContent = 'Your bridge has been built!';
+                message.style.opacity = 1;
+                // Optional: Add sound effect (uncomment and host audio file)
+                // const audio = new Audio('/static/bridge-complete.mp3');
+                // audio.play();
+            }, delay + 500);
 
             fetch('/simulate_swap', {
                 method: 'POST',
@@ -363,10 +393,6 @@
                 return response.json();
             })
             .then(data => {
-                segments.forEach(segment => segment.classList.add('bridge-complete'));
-                const message = document.getElementById('bridge-message');
-                message.textContent = 'Your bridge has been built!';
-                message.style.opacity = 1;
                 const chat = document.querySelector('.chat-box');
                 if (data.error) {
                     chat.innerHTML += `<p>Error: ${data.error}</p>`;
