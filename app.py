@@ -1,8 +1,13 @@
-from flask import Flask, render_template, jsonify, request
+from flask import Flask, render_template, jsonify, request, send_from_directory
 import ccxt
 import random
+import logging
 
-app = Flask(__name__)
+app = Flask(__name__, static_folder='static')
+
+# Configure logging
+logging.basicConfig(level=logging.DEBUG)
+logger = logging.getLogger(__name__)
 
 # Bridgette's personality
 class Bridgette:
@@ -42,7 +47,19 @@ def get_ticker():
         rate = ticker['last']
         return jsonify({'message': bridgette.talk(), 'rate': f"ETH/USDT: {rate}"})
     except Exception as e:
+        logger.error(f"Ticker fetch error: {e}")
         return jsonify({'message': f"Oops, babe: {e}", 'rate': None})
+
+@app.route('/available_pairs')
+def available_pairs():
+    try:
+        markets = exchange.load_markets()
+        pairs = [pair for pair in markets.keys() if markets[pair]['active'] and markets[pair]['quote'] == 'USDT']  # Verified USDT pairs
+        logger.debug(f"Fetched pairs: {pairs}")
+        return jsonify({'pairs': pairs})
+    except Exception as e:
+        logger.error(f"Pairs fetch error: {e}")
+        return jsonify({'error': str(e), 'pairs': []})
 
 @app.route('/simulate_swap', methods=['POST'])
 def simulate_swap():
@@ -50,9 +67,18 @@ def simulate_swap():
     from_token = data.get('from')
     amount = data.get('amount')
     to_token = data.get('to')
-    # Simulate a quote (replace with real swap logic later)
-    quote = amount * 2400  # Fake rate (e.g., 1 ETH = 2400 USDT)
-    return jsonify({'quote': quote})
+    try:
+        ticker = exchange.fetch_ticker(f'{from_token}/{to_token}')
+        rate = ticker['last']
+        quote = amount * rate
+        return jsonify({'quote': quote})
+    except Exception as e:
+        logger.error(f"Simulate swap error: {e}")
+        return jsonify({'quote': 0, 'error': str(e)})
+
+@app.route('/static/<path:filename>')
+def serve_static(filename):
+    return send_from_directory(app.static_folder, filename)
 
 if __name__ == "__main__":
     app.run(debug=True)
