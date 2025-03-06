@@ -27,7 +27,7 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(0, 0, 0, 0.6); /* Semi-transparent dark overlay */
+            background: rgba(0, 0, 0, 0.4); /* Reduced opacity for more background visibility */
             z-index: 1;
         }
         .navbar {
@@ -44,30 +44,30 @@
         }
         #bridge-dashboard {
             min-height: 80vh;
-            padding: 30px;
-            background: rgba(42, 61, 63, 0.8); /* Slightly transparent container */
+            padding: 40px; /* Increased padding for airiness */
+            background: rgba(42, 61, 63, 0.6); /* Reduced opacity for more transparency */
             border-radius: 15px;
             box-shadow: 0 0 30px rgba(0, 204, 255, 0.7);
-            margin-top: 40px;
+            margin-top: 50px; /* Increased margin for better spacing */
             position: relative;
             z-index: 10;
             backdrop-filter: blur(5px); /* Optional blur effect */
         }
         .description {
-            padding: 20px;
+            padding: 25px;
             background: rgba(28, 37, 38, 0.7);
             border-radius: 10px;
-            margin-bottom: 30px;
+            margin-bottom: 40px;
             text-align: center;
             color: #00ccff;
             text-shadow: 0 0 8px #00ccff;
-            font-size: 1.2em;
+            font-size: 1.3em;
         }
         #bridge-container {
             position: relative;
             width: 100%;
             height: 350px;
-            margin-bottom: 30px;
+            margin-bottom: 40px;
         }
         #bridge-construction {
             width: 100%;
@@ -118,79 +118,79 @@
             transition: opacity 0.5s;
         }
         .chat-box {
-            background: rgba(47, 68, 70, 0.9);
+            background: rgba(47, 68, 70, 0.7); /* Reduced opacity */
             border-radius: 10px;
-            padding: 20px;
+            padding: 25px;
             min-height: 250px;
             overflow-y: auto;
             border-left: 4px solid #00ccff;
-            margin-bottom: 20px;
+            margin-bottom: 25px;
         }
         .ticker {
             color: #00ccff;
             font-weight: bold;
             margin-top: 15px;
-            font-size: 1.1em;
+            font-size: 1.2em;
         }
         .input-group {
-            margin-top: 20px;
+            margin-top: 25px;
         }
         .btn-primary {
             background-color: #ff69b4;
             border-color: #ff69b4;
             transition: all 0.3s;
-            padding: 10px 20px;
-            font-size: 1.1em;
+            padding: 12px 25px;
+            font-size: 1.2em;
         }
         .btn-primary:hover {
             background-color: #ff85c0;
             border-color: #ff85c0;
         }
         .sidebar {
-            background: rgba(28, 37, 38, 0.9);
-            padding: 20px;
+            background: rgba(28, 37, 38, 0.7); /* Reduced opacity */
+            padding: 25px;
             border-radius: 10px;
             box-shadow: 0 0 15px rgba(0, 204, 255, 0.3);
-            margin-right: 20px;
+            margin-right: 25px;
         }
         .sidebar h5 {
             color: #00ccff;
             text-shadow: 0 0 8px #00ccff;
-            font-size: 1.3em;
+            font-size: 1.4em;
         }
         .select2-container--default .select2-selection--single {
-            background-color: rgba(47, 68, 70, 0.9);
+            background-color: rgba(47, 68, 70, 0.7); /* Reduced opacity */
             border: 2px solid #00ccff;
             color: #e0e0e0;
-            height: 45px;
+            height: 50px;
             border-radius: 5px;
         }
         .select2-container--default .select2-selection--single .select2-selection__rendered {
             color: #e0e0e0;
-            line-height: 45px;
-            padding-left: 10px;
+            line-height: 50px;
+            padding-left: 12px;
         }
         .select2-container--default .select2-selection--single .select2-selection__arrow {
-            height: 45px;
+            height: 50px;
         }
         .select2-dropdown {
-            background-color: rgba(47, 68, 70, 0.9);
+            background-color: rgba(47, 68, 70, 0.7); /* Reduced opacity */
             border: 2px solid #00ccff;
             border-radius: 5px;
         }
         .select2-results__option {
             color: #e0e0e0;
-            padding: 10px;
+            padding: 12px;
         }
         .select2-results__option--highlighted {
             background-color: #ff69b4 !important;
         }
         @media (max-width: 768px) {
-            #bridge-dashboard { padding: 15px; }
-            #bridgette-avatar { width: 180px; height: 180px; top: -50px; }
-            #bridge-message { font-size: 1.2em; }
+            #bridge-dashboard { padding: 20px; }
+            #bridge-message { font-size: 1.3em; }
             .sidebar { margin-right: 0; margin-bottom: 20px; }
             .navbar-brand { font-size: 1.5em; }
+            .description { font-size: 1.1em; }
         }
     </style>
     <!-- Google Fonts -->
