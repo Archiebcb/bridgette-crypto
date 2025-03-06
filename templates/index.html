@@ -10,13 +10,15 @@
     <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet">
     <style>
         body {
-            background: url('https://images.unsplash.com/photo-1541701494587-cb58502866ab?q=80&w=2070&auto=format&fit=crop') no-repeat center fixed;
+            background: url('/static/Bridgette.jpg') no-repeat center center fixed, url('https://i.imgur.com/UeQAtCW.jpeg') no-repeat center center fixed;
             background-size: cover;
             color: #e0e0e0;
             font-family: 'Orbitron', sans-serif;
             height: 100vh;
             overflow-y: auto;
             position: relative;
+            margin: 0;
+            padding: 0;
         }
         body::before {
             content: '';
@@ -25,8 +27,8 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(0, 0, 0, 0.5);
-            z-index: 0;
+            background: rgba(0, 0, 0, 0.6); /* Semi-transparent dark overlay */
+            z-index: 1;
         }
         .navbar {
             background: linear-gradient(90deg, #1c2526, #2a3d3f);
@@ -35,44 +37,46 @@
             z-index: 10;
         }
         .navbar-brand {
-            font-size: 1.8em;
+            font-size: 2em;
             color: #ff69b4 !important;
             font-weight: bold;
-            text-shadow: 0 0 5px #ff69b4;
+            text-shadow: 0 0 10px #ff69b4;
         }
         #bridge-dashboard {
             min-height: 80vh;
-            padding: 20px;
-            background: rgba(42, 61, 63, 0.95);
-            border-radius: 10px;
-            box-shadow: 0 0 20px rgba(0, 204, 255, 0.5);
-            margin-top: 20px;
+            padding: 30px;
+            background: rgba(42, 61, 63, 0.8); /* Slightly transparent container */
+            border-radius: 15px;
+            box-shadow: 0 0 30px rgba(0, 204, 255, 0.7);
+            margin-top: 40px;
             position: relative;
             z-index: 10;
+            backdrop-filter: blur(5px); /* Optional blur effect */
         }
         .description {
-            padding: 15px;
-            background: rgba(28, 37, 38, 0.9);
-            border-radius: 5px;
-            margin-bottom: 20px;
+            padding: 20px;
+            background: rgba(28, 37, 38, 0.7);
+            border-radius: 10px;
+            margin-bottom: 30px;
             text-align: center;
             color: #00ccff;
-            text-shadow: 0 0 5px #00ccff;
+            text-shadow: 0 0 8px #00ccff;
+            font-size: 1.2em;
         }
         #bridge-container {
             position: relative;
             width: 100%;
-            height: 300px;
-            margin-bottom: 20px; /* Removed display: none */
+            height: 350px;
+            margin-bottom: 30px;
         }
         #bridge-construction {
             width: 100%;
-            height: 10px;
+            height: 15px;
             background: #333;
             position: relative;
-            border-radius: 5px;
+            border-radius: 10px;
             overflow: hidden;
-            top: 100px;
+            top: 120px;
         }
         .bridge-segment {
             position: absolute;
@@ -89,56 +93,44 @@
         }
         .particle {
             position: absolute;
-            width: 5px;
-            height: 5px;
+            width: 6px;
+            height: 6px;
             background: #ff69b4;
             border-radius: 50%;
             animation: sparkle 1s infinite;
         }
         @keyframes sparkle {
             0% { transform: translateY(0); opacity: 1; }
-            100% { transform: translateY(-50px); opacity: 0; }
+            100% { transform: translateY(-60px); opacity: 0; }
         }
         #bridgette-avatar {
-            position: absolute;
-            top: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 250px;
-            height: 250px;
-            background: url('/static/Bridgette.jpg') no-repeat center, url('https://i.imgur.com/UeQAtCW.jpeg') no-repeat center;
-            background-size: contain;
-            z-index: 10;
-            animation: float 3s ease-in-out infinite;
-        }
-        @keyframes float {
-            0% { transform: translateX(-50%) translateY(0); }
-            50% { transform: translateX(-50%) translateY(-10px); }
-            100% { transform: translateX(-50%) translateY(0); }
+            display: none; /* Removed since image is now background */
         }
         #bridge-message {
             position: absolute;
-            bottom: 10px;
+            bottom: 20px;
             left: 50%;
             transform: translateX(-50%);
-            font-size: 1.5em;
+            font-size: 1.8em;
             color: #ff69b4;
-            text-shadow: 0 0 10px #ff69b4;
+            text-shadow: 0 0 15px #ff69b4;
             opacity: 0;
             transition: opacity 0.5s;
         }
         .chat-box {
-            background: #2f4446;
-            border-radius: 5px;
-            padding: 15px;
-            min-height: 200px;
+            background: rgba(47, 68, 70, 0.9);
+            border-radius: 10px;
+            padding: 20px;
+            min-height: 250px;
             overflow-y: auto;
-            border-left: 3px solid #00ccff;
+            border-left: 4px solid #00ccff;
+            margin-bottom: 20px;
         }
         .ticker {
             color: #00ccff;
             font-weight: bold;
-            margin-top: 10px;
+            margin-top: 15px;
+            font-size: 1.1em;
         }
         .input-group {
             margin-top: 20px;
@@ -147,48 +139,58 @@
             background-color: #ff69b4;
             border-color: #ff69b4;
             transition: all 0.3s;
+            padding: 10px 20px;
+            font-size: 1.1em;
         }
         .btn-primary:hover {
             background-color: #ff85c0;
             border-color: #ff85c0;
         }
         .sidebar {
-            background: #1c2526;
-            padding: 15px;
-            border-radius: 5px;
-            box-shadow: 0 0 10px rgba(0, 204, 255, 0.2);
+            background: rgba(28, 37, 38, 0.9);
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 15px rgba(0, 204, 255, 0.3);
+            margin-right: 20px;
         }
         .sidebar h5 {
             color: #00ccff;
-            text-shadow: 0 0 5px #00ccff;
+            text-shadow: 0 0 8px #00ccff;
+            font-size: 1.3em;
         }
         .select2-container--default .select2-selection--single {
-            background-color: #2f4446;
-            border: 1px solid #00ccff;
+            background-color: rgba(47, 68, 70, 0.9);
+            border: 2px solid #00ccff;
             color: #e0e0e0;
-            height: 38px;
+            height: 45px;
+            border-radius: 5px;
         }
         .select2-container--default .select2-selection--single .select2-selection__rendered {
             color: #e0e0e0;
-            line-height: 38px;
+            line-height: 45px;
+            padding-left: 10px;
         }
         .select2-container--default .select2-selection--single .select2-selection__arrow {
-            height: 38px;
+            height: 45px;
         }
         .select2-dropdown {
-            background-color: #2f4446;
-            border: 1px solid #00ccff;
+            background-color: rgba(47, 68, 70, 0.9);
+            border: 2px solid #00ccff;
+            border-radius: 5px;
         }
         .select2-results__option {
             color: #e0e0e0;
+            padding: 10px;
         }
         .select2-results__option--highlighted {
             background-color: #ff69b4 !important;
         }
         @media (max-width: 768px) {
-            #bridge-dashboard { padding: 10px; }
-            #bridgette-avatar { width: 200px; height: 200px; top: -60px; }
-            #bridge-message { font-size: 1em; }
+            #bridge-dashboard { padding: 15px; }
+            #bridgette-avatar { width: 180px; height: 180px; top: -50px; }
+            #bridge-message { font-size: 1.2em; }
+            .sidebar { margin-right: 0; margin-bottom: 20px; }
+            .navbar-brand { font-size: 1.5em; }
         }
     </style>
     <!-- Google Fonts -->
@@ -228,7 +230,6 @@
                         <div id="segment-2" class="bridge-segment"></div>
                         <div id="segment-3" class="bridge-segment"></div>
                     </div>
-                    <div id="bridgette-avatar"></div>
                     <div id="bridge-message"></div>
                 </div>
                 <div class="chat-box">
@@ -331,7 +332,6 @@
             }
 
             const container = document.getElementById('bridge-container');
-            // No need to set display: block since it's already visible
 
             const segments = [
                 document.getElementById('segment-1'),
