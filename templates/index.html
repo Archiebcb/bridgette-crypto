@@ -81,8 +81,8 @@
         #bridge-container {
             position: relative;
             width: 100%;
-            height: 300px; /* Adjusted height for bottom placement */
-            margin-top: 40px;
+            height: 300px; /* Adjusted for top placement */
+            margin-bottom: 20px;
             overflow: hidden;
         }
         #bridge-construction {
@@ -251,6 +251,7 @@
             .description { font-size: 1.1em; }
             .holographic { width: 80px; height: 80px; }
             .input-group { flex-direction: column; }
+            #bridge-container { height: 200px; } /* Adjusted for mobile */
         }
     </style>
     <!-- Google Fonts -->
@@ -275,7 +276,7 @@
     <!-- Main Dashboard -->
     <div class="container">
         <div class="row" id="bridge-dashboard">
-            <!-- Top Row: Tickers and Swap Inputs -->
+            <!-- Top Row: Tickers and Bridge Animation -->
             <div class="col-md-12">
                 <div class="row">
                     <!-- Live Tickers -->
@@ -289,17 +290,18 @@
                             </div>
                         </div>
                     </div>
-                    <!-- Swap Inputs -->
+                    <!-- Bridge Animation -->
                     <div class="col-md-9">
-                        <div class="input-group">
-                            <select class="form-control token-select" id="from-token">
-                                <option value="">Select From Token</option>
-                            </select>
-                            <input type="number" class="form-control" id="amount" placeholder="Amount" step="0.01" aria-label="Amount">
-                            <select class="form-control token-select" id="to-token">
-                                <option value="">Select To Token</option>
-                            </select>
-                            <button class="btn btn-primary" onclick="requestSwap()">Swap</button>
+                        <div id="bridge-container">
+                            <div id="bridge-construction">
+                                <div id="segment-1" class="bridge-segment"></div>
+                                <div id="segment-2" class="bridge-segment"></div>
+                                <div id="segment-3" class="bridge-segment"></div>
+                                <div id="segment-4" class="bridge-segment"></div>
+                                <div id="segment-5" class="bridge-segment"></div>
+                                <div id="segment-6" class="bridge-segment"></div>
+                            </div>
+                            <div id="bridge-message"></div>
                         </div>
                     </div>
                 </div>
@@ -311,18 +313,17 @@
                     <p class="ticker" id="ticker">Loading rates...</p>
                 </div>
             </div>
-            <!-- Bridge Animation -->
+            <!-- Swap Inputs -->
             <div class="col-md-12">
-                <div id="bridge-container">
-                    <div id="bridge-construction">
-                        <div id="segment-1" class="bridge-segment"></div>
-                        <div id="segment-2" class="bridge-segment"></div>
-                        <div id="segment-3" class="bridge-segment"></div>
-                        <div id="segment-4" class="bridge-segment"></div>
-                        <div id="segment-5" class="bridge-segment"></div>
-                        <div id="segment-6" class="bridge-segment"></div>
-                    </div>
-                    <div id="bridge-message"></div>
+                <div class="input-group">
+                    <select class="form-control token-select" id="from-token">
+                        <option value="">Select From Token</option>
+                    </select>
+                    <input type="number" class="form-control" id="amount" placeholder="Amount" step="0.01" aria-label="Amount">
+                    <select class="form-control token-select" id="to-token">
+                        <option value="">Select To Token</option>
+                    </select>
+                    <button class="btn btn-primary" onclick="requestSwap()">Swap</button>
                 </div>
             </div>
         </div>
