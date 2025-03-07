@@ -157,6 +157,7 @@ def get_analytics():
 @app.route('/static/<path:filename>')
 def serve_static(filename):
     try:
+        logger.info(f"Serving static file: {filename}")
         return send_from_directory(app.static_folder, filename)
     except Exception as e:
         logger.error(f"Static file error: {e}")

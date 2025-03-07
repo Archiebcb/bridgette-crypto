@@ -499,6 +499,7 @@
         let arEnabled = false;
         let trendData = { labels: [], values: [] };
         let blockHeight = 0;
+        let trendChart = null;
 
         $(document).ready(function() {
             $('.chain-select, .token-select').select2({
@@ -523,10 +524,11 @@
         });
 
         document.addEventListener('DOMContentLoaded', function() {
-            function attemptTickerUpdate(attempts = 15, delay = 1000) {
+            function attemptTickerUpdate(attempts = 15, delay = 2000) {
                 const tickerElement = document.getElementById('ticker');
                 const marketTickerContainer = document.getElementById('market-ticker-container');
                 if (tickerElement && marketTickerContainer) {
+                    console.log('Ticker elements found, starting updateTicker');
                     updateTicker();
                 } else if (attempts > 0) {
                     console.log(`Ticker elements not found, retrying... (${attempts} attempts left). DOM ready: ${document.readyState}, Ticker exists: ${!!tickerElement}, Container exists: ${!!marketTickerContainer}`);
@@ -536,12 +538,15 @@
                     marketTickerContainer.innerHTML = '<p class="ticker">Market data unavailable. Refresh to retry.</p>';
                 }
             }
-            attemptTickerUpdate();
+            setTimeout(attemptTickerUpdate, 1000); // Delay to ensure DOM is fully loaded
         });
 
         function updateTicker() {
             fetch('/ticker')
-                .then(response => { if (!response.ok) throw new Error(response.statusText); return response.json(); })
+                .then(response => {
+                    if (!response.ok) throw new Error(response.statusText);
+                    return response.json();
+                })
                 .then(data => {
                     const tickerElement = document.getElementById('ticker');
                     if (tickerElement) {
@@ -587,7 +592,10 @@
 
         function populateTokens(target, chain) {
             fetch('/available_pairs')
-                .then(response => { if (!response.ok) throw new Error(response.statusText); return response.json(); })
+                .then(response => {
+                    if (!response.ok) throw new Error(response.statusText);
+                    return response.json();
+                })
                 .then(data => {
                     if (data.error) throw new Error(data.error);
                     const select = document.getElementById(target);
@@ -623,6 +631,7 @@
         const ANIMATION_DURATION = 3000;
         let animationStartTime = null;
         const audio = document.getElementById('bridge-audio');
+        let bridgeInitialized = false;
 
         function initBridge() {
             const container = document.getElementById('interactive-bridge');
@@ -637,153 +646,77 @@
             bridgeCamera.lookAt(0, 0, 0);
             bridgeScene = new THREE.Scene();
             bridgeScene.background = new THREE.Color(0x1c2526);
+            bridgeRenderer = new THREE.WebGLRenderer({ antialias: true });
+            bridgeRenderer.setSize(container.offsetWidth, container.offsetHeight);
+            container.appendChild(bridgeRenderer.domElement);
+            controls = new THREE.OrbitControls(bridgeCamera, bridgeRenderer.domElement);
+
             const ambientLight = new THREE.AmbientLight(0x404040);
             bridgeScene.add(ambientLight);
             const directionalLight = new THREE.DirectionalLight(0xffffff, 0.5);
             directionalLight.position.set(0, 10, 10);
             bridgeScene.add(directionalLight);
 
-            // Deck with texture
-            const textureLoader = new THREE.TextureLoader();
-            textureLoader.load('https://threejs.org/examples/textures/concrete.jpg', (texture) => {
-                texture.wrapS = THREE.RepeatWrapping;
-                texture.wrapT = THREE.RepeatWrapping;
-                texture.repeat.set(12, 1);
-                const deckMaterial = new THREE.MeshPhongMaterial({ map: texture, color: 0xff4040, emissive: 0xff4040, emissiveIntensity: 0.3 });
-                const deckGeometry = new THREE.BoxGeometry(14, 0.4, 2.5);
-                bridgeDeck = new THREE.Mesh(deckGeometry, deckMaterial);
-                bridgeDeck.position.y = 0.6;
-                bridgeDeck.scale.x = 0;
-                bridgeScene.add(bridgeDeck);
+            // Simplified bridge deck (no texture for now)
+            const deckMaterial = new THREE.MeshPhongMaterial({ color: 0xff4040, emissive: 0xff4040, emissiveIntensity: 0.3 });
+            const deckGeometry = new THREE.BoxGeometry(14, 0.4, 2.5);
+            bridgeDeck = new THREE.Mesh(deckGeometry, deckMaterial);
+            bridgeDeck.position.y = 0.6;
+            bridgeDeck.scale.x = 0;
+            bridgeScene.add(bridgeDeck);
 
-                // Road surface
-                const roadGeometry = new THREE.PlaneGeometry(14, 2);
-                const roadMaterial = new THREE.MeshBasicMaterial({ color: 0x333333, transparent: true, opacity: 0.8 });
-                const road = new THREE.Mesh(roadGeometry, roadMaterial);
-                road.position.y = 0.7;
-                road.rotation.x = -Math.PI / 2;
-                bridgeScene.add(road);
+            // Towers
+            const towerGeometry = new THREE.BoxGeometry(0.8, 5, 0.8);
+            const towerMaterial = new THREE.MeshPhongMaterial({ color: 0x800080, emissive: 0x800080, emissiveIntensity: 0.6 });
+            for (let x of [-5.5, 5.5]) {
+                const tower = new THREE.Mesh(towerGeometry, towerMaterial);
+                tower.position.set(x, 2.5, 0);
+                tower.scale.y = 0;
+                bridgeScene.add(tower);
+                towers.push(tower);
+            }
 
-                // Lane markings
-                const lineMaterial = new THREE.LineBasicMaterial({ color: 0xff69b4 });
-                const linePoints = [];
-                for (let x = -6; x <= 6; x += 0.5) {
-                    linePoints.push(new THREE.Vector3(x, 0.71, 0));
-                }
-                const lineGeometry = new THREE.BufferGeometry().setFromPoints(linePoints);
-                const laneLines = new THREE.LineSegments(lineGeometry, lineMaterial);
-                bridgeScene.add(laneLines);
+            // Cables
+            const cableMaterial = new THREE.LineBasicMaterial({ color: 0xff69b4 });
+            for (let i = -2; i <= 2; i++) {
+                const curve = new THREE.CubicBezierCurve3(
+                    new THREE.Vector3(-5.5 + i * 1.5, 4, 0),
+                    new THREE.Vector3(-3 + i * 1.5, 6, 0),
+                    new THREE.Vector3(3 + i * 1.5, 6, 0),
+                    new THREE.Vector3(5.5 + i * 1.5, 4, 0)
+                );
+                const points = curve.getPoints(50);
+                const cableGeometry = new THREE.BufferGeometry().setFromPoints(points);
+                const cable = new THREE.Line(cableGeometry, cableMaterial);
+                bridgeScene.add(cable);
+                cables.push(cable);
+            }
 
-                // Towers
-                const towerGeometry = new THREE.BoxGeometry(0.8, 5, 0.8);
-                const towerMaterial = new THREE.MeshPhongMaterial({ color: 0x800080, emissive: 0x800080, emissiveIntensity: 0.6 });
-                for (let x of [-5.5, 5.5]) {
-                    const tower = new THREE.Mesh(towerGeometry, towerMaterial);
-                    tower.position.set(x, 2.5, 0);
-                    tower.scale.y = 0;
-                    bridgeScene.add(tower);
-                    towers.push(tower);
-                }
-
-                // Curved cables
-                const cableMaterial = new THREE.LineBasicMaterial({ color: 0xff69b4 });
-                for (let i = -2; i <= 2; i++) {
-                    const curve = new THREE.CubicBezierCurve3(
-                        new THREE.Vector3(-5.5 + i * 1.5, 4, 0),
-                        new THREE.Vector3(-3 + i * 1.5, 6, 0),
-                        new THREE.Vector3(3 + i * 1.5, 6, 0),
-                        new THREE.Vector3(5.5 + i * 1.5, 4, 0)
-                    );
-                    const points = curve.getPoints(50);
-                    const cableGeometry = new THREE.BufferGeometry().setFromPoints(points);
-                    const cable = new THREE.Line(cableGeometry, cableMaterial);
-                    bridgeScene.add(cable);
-                    cables.push(cable);
-                }
-
-                // Railings
-                const railingMaterial = new THREE.LineBasicMaterial({ color: 0xff4040 });
-                const railingPoints = [];
-                for (let x = -7; x <= 7; x += 0.5) {
-                    railingPoints.push(new THREE.Vector3(x, 0.9, 1.2));
-                    railingPoints.push(new THREE.Vector3(x, 0.9, -1.2));
-                }
-                const railingGeometry = new THREE.BufferGeometry().setFromPoints(railingPoints);
-                const railing = new THREE.Line(railingGeometry, railingMaterial);
-                bridgeScene.add(railing);
-                railings.push(railing);
-
-                // Vertical supports
-                const supportMaterial = new THREE.LineBasicMaterial({ color: 0x800080 });
-                for (let x = -6; x <= 6; x += 1) {
-                    const supportPoints = [new THREE.Vector3(x, 0.6, 0), new THREE.Vector3(x, 3, 0)];
-                    const supportGeometry = new THREE.BufferGeometry().setFromPoints(supportPoints);
-                    const support = new THREE.Line(supportGeometry, supportMaterial);
-                    bridgeScene.add(support);
-                    verticalSupports.push(support);
-                }
-
-                // Cross-bracing
-                const braceMaterial = new THREE.LineBasicMaterial({ color: 0xff69b4 });
-                const bracePoints = [new THREE.Vector3(-5.5, 2, 0), new THREE.Vector3(5.5, 2, 0)];
-                const braceGeometry = new THREE.BufferGeometry().setFromPoints(bracePoints);
-                const brace = new THREE.Line(braceGeometry, braceMaterial);
-                bridgeScene.add(brace);
-
-                // Neon lights
-                const lightMaterial = new THREE.PointsMaterial({ color: 0xff4040, size: 0.1 });
-                for (let x = -6; x <= 6; x += 1) {
-                    const lightGeometry = new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(x, 0.6, 1)]);
-                    const light = new THREE.Points(lightGeometry, lightMaterial);
-                    bridgeScene.add(light);
-                    lights.push(light);
-                }
-
-                // Renderer and controls
-                bridgeRenderer = new THREE.WebGLRenderer({ antialias: true });
-                bridgeRenderer.setSize(container.offsetWidth, container.offsetHeight);
-                container.appendChild(bridgeRenderer.domElement);
-                controls = new THREE.OrbitControls(bridgeCamera, bridgeRenderer.domElement);
-                console.log('Bridge renderer initialized:', bridgeRenderer.domElement);
-                animateBridge();
-            }, undefined, (error) => {
-                console.error('Texture loading failed, using fallback material:', error);
-                const deckMaterial = new THREE.MeshPhongMaterial({ color: 0xff4040, emissive: 0xff4040, emissiveIntensity: 0.3 });
-                const deckGeometry = new THREE.BoxGeometry(14, 0.4, 2.5);
-                bridgeDeck = new THREE.Mesh(deckGeometry, deckMaterial);
-                bridgeDeck.position.y = 0.6;
-                bridgeDeck.scale.x = 0;
-                bridgeScene.add(bridgeDeck);
-                bridgeRenderer = new THREE.WebGLRenderer({ antialias: true });
-                bridgeRenderer.setSize(container.offsetWidth, container.offsetHeight);
-                container.appendChild(bridgeRenderer.domElement);
-                controls = new THREE.OrbitControls(bridgeCamera, bridgeRenderer.domElement);
-                console.log('Bridge renderer initialized with fallback:', bridgeRenderer.domElement);
-                animateBridge();
-            });
+            bridgeInitialized = true;
+            console.log('Bridge initialized successfully');
+            animateBridge();
 
             window.addEventListener('resize', () => {
                 bridgeCamera.aspect = container.offsetWidth / container.offsetHeight;
                 bridgeCamera.updateProjectionMatrix();
                 bridgeRenderer.setSize(container.offsetWidth, container.offsetHeight);
             });
-            audio.load();
+            if (audio) audio.load();
         }
 
         function animateBridge(time) {
             animationFrameId = requestAnimationFrame(animateBridge);
-            if (isAnimating && bridgeRenderer && bridgeScene && bridgeCamera) {
+            if (!bridgeInitialized || !bridgeRenderer || !bridgeScene || !bridgeCamera) {
+                console.error('Rendering failed: Missing bridgeRenderer, bridgeScene, or bridgeCamera');
+                return;
+            }
+            if (isAnimating) {
                 if (!animationStartTime) animationStartTime = time;
                 const elapsed = time - animationStartTime;
                 bridgeProgress = Math.min(elapsed / ANIMATION_DURATION, 1);
                 if (bridgeDeck) bridgeDeck.scale.x = bridgeProgress * 1.2;
                 towers.forEach(tower => { if (tower) tower.scale.y = bridgeProgress * 1.5; });
                 verticalSupports.forEach(support => { if (support) support.scale.y = bridgeProgress * 1.5; });
-                lights.forEach(light => {
-                    if (light && light.material) {
-                        light.material.color.setHSL(Math.sin(time / 1000) * 0.5 + 0.5, 1, 0.5);
-                    }
-                });
                 const chimeIntervals = [0.25, 0.5, 0.75, 1];
                 chimeIntervals.forEach((interval, index) => {
                     if (bridgeProgress >= interval && !audio.dataset[`chime${index}`]) {
@@ -799,14 +732,16 @@
                     stopBridgeAnimation();
                     if (speechSynthesisSupported) speakCommand();
                 }
-                bridgeRenderer.render(bridgeScene, bridgeCamera);
-                if (controls) controls.update();
-            } else {
-                console.error('Rendering failed: Missing bridgeRenderer, bridgeScene, or bridgeCamera');
             }
+            bridgeRenderer.render(bridgeScene, bridgeCamera);
+            if (controls) controls.update();
         }
 
         function startBridgeAnimation() {
+            if (!bridgeInitialized) {
+                console.error('Bridge not initialized, cannot start animation');
+                return;
+            }
             bridgeProgress = 0;
             if (bridgeDeck) bridgeDeck.scale.x = 0;
             towers.forEach(tower => { if (tower) tower.scale.y = 0; });
@@ -834,7 +769,10 @@
             }
         }
 
-        window.addEventListener('load', initBridge);
+        window.addEventListener('load', () => {
+            console.log('Window loaded, initializing bridge');
+            initBridge();
+        });
 
         function requestSwap() {
             const fromChain = document.getElementById('from-chain').value;
@@ -978,7 +916,7 @@
 
         function initTrendGraph() {
             const ctx = document.getElementById('trend-canvas').getContext('2d');
-            new Chart(ctx, {
+            trendChart = new Chart(ctx, {
                 type: 'line',
                 data: {
                     labels: trendData.labels,
@@ -1003,24 +941,12 @@
                 trendData.labels.shift();
                 trendData.values.shift();
             }
-            const ctx = document.getElementById('trend-canvas').getContext('2d');
-            if (ctx) {
-                new Chart(ctx, {
-                    type: 'line',
-                    data: {
-                        labels: trendData.labels,
-                        datasets: [{
-                            label: 'Price Trend (USDT)',
-                            data: trendData.values,
-                            borderColor: '#ff69b4',
-                            fill: false
-                        }]
-                    },
-                    options: {
-                        scales: { y: { beginAtZero: false } },
-                        animation: false
-                    }
-                });
+            if (trendChart) {
+                trendChart.data.labels = trendData.labels;
+                trendChart.data.datasets[0].data = trendData.values;
+                trendChart.update();
+            } else {
+                console.error('Trend chart not initialized');
             }
         }
 
@@ -1028,12 +954,7 @@
             if (!arEnabled) {
                 const container = document.getElementById('ar-container');
                 container.innerHTML = '<p>AR view enabled. Point your device at a flat surface.</p>';
-                // Note: Full AR implementation requires Three.js AR library (e.g., @ar-js-org/ar.js)
-                // This is a placeholder; uncomment and configure below if desired:
-                // import { ARjs } from '@ar-js-org/ar.js';
-                // const arScene = new ARjs.Scene();
-                // arScene.add(bridgeScene);
-                // arEnabled = true;
+                arEnabled = true;
             } else {
                 document.getElementById('ar-container').innerHTML = '';
                 arEnabled = false;
