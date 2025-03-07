@@ -117,6 +117,7 @@
             opacity: 0.8;
             animation: holographicPulse 4s ease-in-out infinite;
             z-index: 11;
+            cursor: pointer;
         }
         @keyframes holographicPulse {
             0% { opacity: 0.8; transform: translateY(0); }
@@ -147,6 +148,12 @@
             margin-bottom: 20px;
             position: relative;
             font-size: 1.1em;
+            animation: holographicChat 3s infinite;
+        }
+        @keyframes holographicChat {
+            0% { box-shadow: 0 0 10px #ffd700; }
+            50% { box-shadow: 0 0 20px #ff69b4; }
+            100% { box-shadow: 0 0 10px #ffd700; }
         }
         .chat-box p {
             opacity: 0;
@@ -257,6 +264,29 @@
             border-radius: 15px;
             border-left: 4px solid #ff69b4;
         }
+        .trend-graph {
+            margin-top: 20px;
+            height: 200px;
+            background: rgba(47, 68, 70, 0.7);
+            border-radius: 15px;
+            border-left: 4px solid #ffd700;
+        }
+        .ar-preview {
+            margin-top: 20px;
+            padding: 10px;
+            background: rgba(28, 37, 38, 0.7);
+            border-radius: 15px;
+            border-left: 4px solid #00ff00;
+            text-align: center;
+        }
+        .quantum-trade {
+            margin-top: 20px;
+            padding: 10px;
+            background: rgba(28, 37, 38, 0.7);
+            border-radius: 15px;
+            border-left: 4px solid #00ffff;
+            text-align: center;
+        }
         @media (max-width: 768px) {
             #bridge-dashboard { padding: 15px; }
             #interactive-bridge { height: 300px; }
@@ -269,6 +299,8 @@
         }
     </style>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r134/three.min.js"></script>
+    <script src="https://unpkg.com/three@0.134.0/examples/js/controls/OrbitControls.js"></script>
+    <script src="https://unpkg.com/three@0.134.0/examples/js/loaders/TextureLoader.js"></script>
 </head>
 <body>
     <nav class="navbar navbar-expand-lg">
@@ -312,6 +344,20 @@
                             <input type="number" class="form-control" id="alert-price" placeholder="Alert Price" step="0.01">
                             <button class="btn btn-primary mt-2" onclick="setPriceAlert()">Set Alert</button>
                             <div id="alert-message"></div>
+                        </div>
+                        <div class="trend-graph">
+                            <h5>Market Trends</h5>
+                            <canvas id="trend-canvas"></canvas>
+                        </div>
+                        <div class="ar-preview">
+                            <h5>AR Preview</h5>
+                            <button class="btn btn-success" onclick="toggleAR()">Toggle AR View</button>
+                            <div id="ar-container"></div>
+                        </div>
+                        <div class="quantum-trade">
+                            <h5>Quantum Trade Generator</h5>
+                            <button class="btn btn-info" onclick="generateQuantumTrade()">Generate Trade</button>
+                            <div id="quantum-trade-result"></div>
                         </div>
                     </div>
                     <div class="col-md-9">
@@ -381,6 +427,8 @@
     <script>
         let alerts = {};
         let speechSynthesisSupported = window.speechSynthesis !== undefined;
+        let arEnabled = false;
+        let trendData = { labels: [], values: [] };
 
         $(document).ready(function() {
             $('.chain-select, .token-select').select2({
@@ -400,20 +448,21 @@
                 const audio = document.getElementById('bridge-audio');
                 audio.play().catch(error => console.log('Audio play failed:', error));
             });
+            initTrendGraph();
         });
 
         document.addEventListener('DOMContentLoaded', function() {
-            function attemptTickerUpdate(attempts = 10, delay = 1000) {
+            function attemptTickerUpdate(attempts = 15, delay = 1000) {
                 const tickerElement = document.getElementById('ticker');
                 const marketTickerContainer = document.getElementById('market-ticker-container');
                 if (tickerElement && marketTickerContainer) {
                     updateTicker();
                 } else if (attempts > 0) {
-                    console.log(`Ticker elements not found, retrying... (${attempts} attempts left)`);
+                    console.log(`Ticker elements not found, retrying... (${attempts} attempts left). DOM ready: ${document.readyState}, Ticker exists: ${!!tickerElement}, Container exists: ${!!marketTickerContainer}`);
                     setTimeout(() => attemptTickerUpdate(attempts - 1, delay), delay);
                 } else {
-                    console.error('Ticker elements not found after all attempts, hiding section');
-                    marketTickerContainer.style.display = 'none'; // Hide if failed
+                    console.error('Ticker elements not found after all attempts, showing static message');
+                    marketTickerContainer.innerHTML = '<p class="ticker">Market data unavailable. Refresh to retry.</p>';
                 }
             }
             attemptTickerUpdate();
@@ -447,6 +496,7 @@
                                     element.classList.add('active');
                                     element.innerText = `${ticker.pair}: ${data.rates[ticker.pair] || 'Loading...'}`;
                                     checkPriceAlert(ticker.pair, data.rates[ticker.pair] || 0);
+                                    updateTrendData(ticker.pair, data.rates[ticker.pair] || 0);
                                 } else {
                                     element.classList.remove('active');
                                 }
@@ -495,7 +545,7 @@
         }
 
         let bridgeScene, bridgeCamera, bridgeRenderer;
-        let bridgeDeck, towers = [], cables = [];
+        let bridgeDeck, towers = [], cables = [], railings = [], verticalSupports = [];
         let bridgeProgress = 0;
         let animationFrameId;
         let isAnimating = false;
@@ -519,34 +569,64 @@
             const directionalLight = new THREE.DirectionalLight(0xffffff, 0.5);
             directionalLight.position.set(0, 1, 1);
             bridgeScene.add(directionalLight);
-            const deckGeometry = new THREE.BoxGeometry(10, 0.3, 1.5);
-            const deckMaterial = new THREE.MeshPhongMaterial({ color: 0xdda0dd, emissive: 0xdda0dd, emissiveIntensity: 0.5 });
+
+            // Load texture for deck
+            const textureLoader = new THREE.TextureLoader();
+            const deckTexture = textureLoader.load('https://threejs.org/examples/textures/concrete.jpg', () => {
+                deckTexture.wrapS = THREE.RepeatWrapping;
+                deckTexture.wrapT = THREE.RepeatWrapping;
+                deckTexture.repeat.set(10, 1);
+            }, undefined, () => console.error('Texture loading failed'));
+            const deckMaterial = new THREE.MeshPhongMaterial({ map: deckTexture, color: 0xdda0dd, emissive: 0xdda0dd, emissiveIntensity: 0.5 });
+            const deckGeometry = new THREE.BoxGeometry(12, 0.3, 2); // Wider and thicker deck
             bridgeDeck = new THREE.Mesh(deckGeometry, deckMaterial);
             bridgeDeck.position.y = 0.5;
             bridgeDeck.scale.x = 0;
             bridgeScene.add(bridgeDeck);
+
+            // Towers
             const towerGeometry = new THREE.BoxGeometry(0.6, 4, 0.6);
             const towerMaterial = new THREE.MeshPhongMaterial({ color: 0xffd700, emissive: 0xffd700, emissiveIntensity: 0.6 });
-            for (let x of [-3.5, 3.5]) {
+            for (let x of [-4.5, 4.5]) {
                 const tower = new THREE.Mesh(towerGeometry, towerMaterial);
                 tower.position.set(x, 2, 0);
                 tower.scale.y = 0;
                 bridgeScene.add(tower);
                 towers.push(tower);
             }
+
+            // Multiple cables
             const cableMaterial = new THREE.LineBasicMaterial({ color: 0xffd700 });
-            const cablePoints = [new THREE.Vector3(-3.5, 3.5, 0), new THREE.Vector3(3.5, 3.5, 0)];
-            const cableGeometry = new THREE.BufferGeometry().setFromPoints(cablePoints);
-            const cable = new THREE.Line(cableGeometry, cableMaterial);
-            bridgeScene.add(cable);
-            cables.push(cable);
+            for (let i = -2; i <= 2; i++) {
+                const cablePoints = [new THREE.Vector3(-4.5 + i * 1.5, 3.5, 0), new THREE.Vector3(4.5 + i * 1.5, 3.5, 0)];
+                const cableGeometry = new THREE.BufferGeometry().setFromPoints(cablePoints);
+                const cable = new THREE.Line(cableGeometry, cableMaterial);
+                bridgeScene.add(cable);
+                cables.push(cable);
+            }
+
+            // Railings
+            const railingMaterial = new THREE.LineBasicMaterial({ color: 0xaaaaaa });
+            const railingPoints = [];
+            for (let x = -6; x <= 6; x += 0.5) {
+                railingPoints.push(new THREE.Vector3(x, 0.8, 1));
+                railingPoints.push(new THREE.Vector3(x, 0.8, -1));
+            }
+            const railingGeometry = new THREE.BufferGeometry().setFromPoints(railingPoints);
+            const railing = new THREE.Line(railingGeometry, railingMaterial);
+            bridgeScene.add(railing);
+            railings.push(railing);
+
+            // Vertical supports
             const supportMaterial = new THREE.LineBasicMaterial({ color: 0xffd700 });
-            for (let x = -3.5; x <= 3.5; x += 1) {
-                const supportPoints = [new THREE.Vector3(x, 0.5, 0), new THREE.Vector3(x, 3.5, 0)];
+            for (let x = -5; x <= 5; x += 1) {
+                const supportPoints = [new THREE.Vector3(x, 0.5, 0), new THREE.Vector3(x, 2.5, 0)];
                 const supportGeometry = new THREE.BufferGeometry().setFromPoints(supportPoints);
                 const support = new THREE.Line(supportGeometry, supportMaterial);
                 bridgeScene.add(support);
+                verticalSupports.push(support);
             }
+
             bridgeRenderer = new THREE.WebGLRenderer({ antialias: true });
             bridgeRenderer.setSize(container.offsetWidth, container.offsetHeight);
             container.appendChild(bridgeRenderer.domElement);
@@ -568,6 +648,7 @@
                 bridgeProgress = Math.min(elapsed / ANIMATION_DURATION, 1);
                 bridgeDeck.scale.x = bridgeProgress * 1.2;
                 towers.forEach(tower => tower.scale.y = bridgeProgress * 1.5);
+                verticalSupports.forEach(support => support.scale.y = bridgeProgress * 1.5);
                 const chimeIntervals = [0.25, 0.5, 0.75, 1];
                 chimeIntervals.forEach((interval, index) => {
                     if (bridgeProgress >= interval && !audio.dataset[`chime${index}`]) {
@@ -593,6 +674,7 @@
             bridgeProgress = 0;
             bridgeDeck.scale.x = 0;
             towers.forEach(tower => tower.scale.y = 0);
+            verticalSupports.forEach(support => support.scale.y = 0);
             isAnimating = true;
             animationStartTime = null;
             audio.currentTime = 0;
@@ -692,7 +774,7 @@
             const price = document.getElementById('alert-price').value;
             if (pair && price) {
                 alerts[pair] = parseFloat(price);
-                document.getElementId('alert-message').innerText = `Alert set for ${pair} at $${price}`;
+                document.getElementById('alert-message').innerText = `Alert set for ${pair} at $${price}`;
                 setTimeout(() => document.getElementById('alert-message').innerText = '', 5000);
             } else {
                 document.getElementById('alert-message').innerText = 'Please select a pair and enter a price';
@@ -706,7 +788,7 @@
                 if (speechSynthesisSupported) {
                     speak(`Alert: ${pair} has reached ${currentPrice} dollars.`);
                 }
-                delete alerts[pair]; // Clear alert after triggering
+                delete alerts[pair];
                 setTimeout(() => document.getElementById('alert-message').innerText = '', 5000);
             }
         }
@@ -732,6 +814,81 @@
             } else {
                 console.log('Speech synthesis not supported in this browser.');
             }
+        }
+
+        function initTrendGraph() {
+            const ctx = document.getElementById('trend-canvas').getContext('2d');
+            new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: trendData.labels,
+                    datasets: [{
+                        label: 'Price Trend (USDT)',
+                        data: trendData.values,
+                        borderColor: '#ffd700',
+                        fill: false
+                    }]
+                },
+                options: {
+                    scales: { y: { beginAtZero: false } },
+                    animation: false
+                }
+            });
+        }
+
+        function updateTrendData(pair, price) {
+            trendData.labels.push(new Date().toLocaleTimeString());
+            trendData.values.push(price);
+            if (trendData.labels.length > 10) {
+                trendData.labels.shift();
+                trendData.values.shift();
+            }
+            const ctx = document.getElementById('trend-canvas').getContext('2d');
+            if (ctx) {
+                new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: trendData.labels,
+                        datasets: [{
+                            label: 'Price Trend (USDT)',
+                            data: trendData.values,
+                            borderColor: '#ffd700',
+                            fill: false
+                        }]
+                    },
+                    options: {
+                        scales: { y: { beginAtZero: false } },
+                        animation: false
+                    }
+                });
+            }
+        }
+
+        function toggleAR() {
+            if (!arEnabled) {
+                const container = document.getElementById('ar-container');
+                container.innerHTML = '<p>AR view enabled. Point your device at a flat surface.</p>';
+                // Note: Full AR implementation requires Three.js AR library (e.g., @ar-js-org/ar.js)
+                // This is a placeholder; uncomment and configure below if desired:
+                // import { ARjs } from '@ar-js-org/ar.js';
+                // const arScene = new ARjs.Scene();
+                // arScene.add(bridgeScene);
+                // arEnabled = true;
+            } else {
+                document.getElementById('ar-container').innerHTML = '';
+                arEnabled = false;
+            }
+        }
+
+        function generateQuantumTrade() {
+            const chains = ['cryptocom', 'solana'];
+            const tokens = ['ETH', 'SOL', 'SRM', 'RAY', 'BTC', 'ADA', 'XRP'];
+            const fromChain = chains[Math.floor(Math.random() * chains.length)];
+            const toChain = chains[Math.floor(Math.random() * chains.length)];
+            const fromToken = tokens[Math.floor(Math.random() * tokens.length)];
+            const toToken = tokens[Math.floor(Math.random() * tokens.length)];
+            const amount = (Math.random() * 10 + 1).toFixed(2);
+            document.getElementById('quantum-trade-result').innerText = `Quantum Suggestion: Swap ${amount} ${fromToken} from ${fromChain} to ${toToken} on ${toChain}`;
         }
 
         updateHistory();

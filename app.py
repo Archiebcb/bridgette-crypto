@@ -108,8 +108,8 @@ def simulate_swap():
 
     try:
         rate = 1.0
-        from_rate = mock_rates.get(f"{from_token.split('/')[0]}/USDT", 1.0)  # Extract token from pair
-        to_rate = mock_rates.get(f"{to_token.split('/')[0]}/USDT", 1.0)      # Extract token from pair
+        from_rate = mock_rates.get(f"{from_token.split('/')[0]}/USDT", 1.0)
+        to_rate = mock_rates.get(f"{to_token.split('/')[0]}/USDT", 1.0)
         if from_rate == 0 or to_rate == 0:
             raise ValueError("Invalid rate detected")
         rate = from_rate / to_rate if to_rate != 0 else 1.0
