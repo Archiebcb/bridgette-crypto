@@ -25,7 +25,7 @@ class Bridgette:
             "Future’s here, babe—watch me shine!"
         ])
 
-# Mock exchange rates for testing (simplified)
+# Mock exchange rates for testing
 mock_rates = {
     'ETH/USDT': 2500.00,
     'SOL/USDT': 150.00,
