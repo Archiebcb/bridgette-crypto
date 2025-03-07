@@ -30,7 +30,8 @@ mock_rates = {
     'ETH/USDT': 2500.00,
     'SOL/USDT': 150.00,
     'SRM/USDT': 1.50,
-    'RAY/USDT': 2.00
+    'RAY/USDT': 2.00,
+    'XRP/USDT': 2.50  # Added XRP with a realistic rate (2 XRP = ~5 USDT)
 }
 
 # Database setup
