@@ -516,7 +516,7 @@
             $('#to-chain').on('change', function() { populateTokens('to-token', $(this).val()); });
             document.querySelector('.btn-primary').addEventListener('click', () => {
                 const audio = document.getElementById('bridge-audio');
-                audio.play().catch(error => console.log('Audio play failed:', error));
+                if (audio) audio.play().catch(error => console.log('Audio play failed:', error));
             });
             initTrendGraph();
             updateBlockHeight();
@@ -630,6 +630,8 @@
                 console.error('Interactive bridge container not found');
                 return;
             }
+
+            // Initialize Three.js components
             bridgeCamera = new THREE.PerspectiveCamera(75, container.offsetWidth / container.offsetHeight, 0.1, 1000);
             bridgeCamera.position.set(0, 5, 15);
             bridgeCamera.lookAt(0, 0, 0);
@@ -641,107 +643,125 @@
             directionalLight.position.set(0, 10, 10);
             bridgeScene.add(directionalLight);
 
-            // Load texture for deck
+            // Deck with texture
             const textureLoader = new THREE.TextureLoader();
-            const deckTexture = textureLoader.load('https://threejs.org/examples/textures/concrete.jpg', () => {
-                deckTexture.wrapS = THREE.RepeatWrapping;
-                deckTexture.wrapT = THREE.RepeatWrapping;
-                deckTexture.repeat.set(12, 1);
-            }, undefined, () => console.error('Texture loading failed'));
-            const deckMaterial = new THREE.MeshPhongMaterial({ map: deckTexture, color: 0xff4040, emissive: 0xff4040, emissiveIntensity: 0.3 });
-            const deckGeometry = new THREE.BoxGeometry(14, 0.4, 2.5); // Wider and thicker deck
-            bridgeDeck = new THREE.Mesh(deckGeometry, deckMaterial);
-            bridgeDeck.position.y = 0.6;
-            bridgeDeck.scale.x = 0;
-            bridgeScene.add(bridgeDeck);
+            textureLoader.load('https://threejs.org/examples/textures/concrete.jpg', (texture) => {
+                texture.wrapS = THREE.RepeatWrapping;
+                texture.wrapT = THREE.RepeatWrapping;
+                texture.repeat.set(12, 1);
+                const deckMaterial = new THREE.MeshPhongMaterial({ map: texture, color: 0xff4040, emissive: 0xff4040, emissiveIntensity: 0.3 });
+                const deckGeometry = new THREE.BoxGeometry(14, 0.4, 2.5);
+                bridgeDeck = new THREE.Mesh(deckGeometry, deckMaterial);
+                bridgeDeck.position.y = 0.6;
+                bridgeDeck.scale.x = 0;
+                bridgeScene.add(bridgeDeck);
 
-            // Road surface with lane markings
-            const roadGeometry = new THREE.PlaneGeometry(14, 2);
-            const roadMaterial = new THREE.MeshBasicMaterial({ color: 0x333333, transparent: true, opacity: 0.8 });
-            const road = new THREE.Mesh(roadGeometry, roadMaterial);
-            road.position.y = 0.7;
-            road.rotation.x = -Math.PI / 2;
-            bridgeScene.add(road);
-            const lineMaterial = new THREE.LineBasicMaterial({ color: 0xff69b4 });
-            const linePoints = [];
-            for (let x = -6; x <= 6; x += 0.5) {
-                linePoints.push(new THREE.Vector3(x, 0.71, 0));
-            }
-            const lineGeometry = new THREE.BufferGeometry().setFromPoints(linePoints);
-            const laneLines = new THREE.LineSegments(lineGeometry, lineMaterial);
-            bridgeScene.add(laneLines);
+                // Road surface
+                const roadGeometry = new THREE.PlaneGeometry(14, 2);
+                const roadMaterial = new THREE.MeshBasicMaterial({ color: 0x333333, transparent: true, opacity: 0.8 });
+                const road = new THREE.Mesh(roadGeometry, roadMaterial);
+                road.position.y = 0.7;
+                road.rotation.x = -Math.PI / 2;
+                bridgeScene.add(road);
 
-            // Towers (Golden Gate-inspired)
-            const towerGeometry = new THREE.BoxGeometry(0.8, 5, 0.8);
-            const towerMaterial = new THREE.MeshPhongMaterial({ color: 0x800080, emissive: 0x800080, emissiveIntensity: 0.6 });
-            for (let x of [-5.5, 5.5]) {
-                const tower = new THREE.Mesh(towerGeometry, towerMaterial);
-                tower.position.set(x, 2.5, 0);
-                tower.scale.y = 0;
-                bridgeScene.add(tower);
-                towers.push(tower);
-            }
+                // Lane markings
+                const lineMaterial = new THREE.LineBasicMaterial({ color: 0xff69b4 });
+                const linePoints = [];
+                for (let x = -6; x <= 6; x += 0.5) {
+                    linePoints.push(new THREE.Vector3(x, 0.71, 0));
+                }
+                const lineGeometry = new THREE.BufferGeometry().setFromPoints(linePoints);
+                const laneLines = new THREE.LineSegments(lineGeometry, lineMaterial);
+                bridgeScene.add(laneLines);
 
-            // Curved cables
-            const cableMaterial = new THREE.LineBasicMaterial({ color: 0xff69b4 });
-            for (let i = -2; i <= 2; i++) {
-                const curve = new THREE.CubicBezierCurve3(
-                    new THREE.Vector3(-5.5 + i * 1.5, 4, 0),
-                    new THREE.Vector3(-3 + i * 1.5, 6, 0),
-                    new THREE.Vector3(3 + i * 1.5, 6, 0),
-                    new THREE.Vector3(5.5 + i * 1.5, 4, 0)
-                );
-                const points = curve.getPoints(50);
-                const cableGeometry = new THREE.BufferGeometry().setFromPoints(points);
-                const cable = new THREE.Line(cableGeometry, cableMaterial);
-                bridgeScene.add(cable);
-                cables.push(cable);
-            }
+                // Towers
+                const towerGeometry = new THREE.BoxGeometry(0.8, 5, 0.8);
+                const towerMaterial = new THREE.MeshPhongMaterial({ color: 0x800080, emissive: 0x800080, emissiveIntensity: 0.6 });
+                for (let x of [-5.5, 5.5]) {
+                    const tower = new THREE.Mesh(towerGeometry, towerMaterial);
+                    tower.position.set(x, 2.5, 0);
+                    tower.scale.y = 0;
+                    bridgeScene.add(tower);
+                    towers.push(tower);
+                }
 
-            // Railings
-            const railingMaterial = new THREE.LineBasicMaterial({ color: 0xff4040 });
-            const railingPoints = [];
-            for (let x = -7; x <= 7; x += 0.5) {
-                railingPoints.push(new THREE.Vector3(x, 0.9, 1.2));
-                railingPoints.push(new THREE.Vector3(x, 0.9, -1.2));
-            }
-            const railingGeometry = new THREE.BufferGeometry().setFromPoints(railingPoints);
-            const railing = new THREE.Line(railingGeometry, railingMaterial);
-            bridgeScene.add(railing);
-            railings.push(railing);
+                // Curved cables
+                const cableMaterial = new THREE.LineBasicMaterial({ color: 0xff69b4 });
+                for (let i = -2; i <= 2; i++) {
+                    const curve = new THREE.CubicBezierCurve3(
+                        new THREE.Vector3(-5.5 + i * 1.5, 4, 0),
+                        new THREE.Vector3(-3 + i * 1.5, 6, 0),
+                        new THREE.Vector3(3 + i * 1.5, 6, 0),
+                        new THREE.Vector3(5.5 + i * 1.5, 4, 0)
+                    );
+                    const points = curve.getPoints(50);
+                    const cableGeometry = new THREE.BufferGeometry().setFromPoints(points);
+                    const cable = new THREE.Line(cableGeometry, cableMaterial);
+                    bridgeScene.add(cable);
+                    cables.push(cable);
+                }
 
-            // Vertical supports
-            const supportMaterial = new THREE.LineBasicMaterial({ color: 0x800080 });
-            for (let x = -6; x <= 6; x += 1) {
-                const supportPoints = [new THREE.Vector3(x, 0.6, 0), new THREE.Vector3(x, 3, 0)];
-                const supportGeometry = new THREE.BufferGeometry().setFromPoints(supportPoints);
-                const support = new THREE.Line(supportGeometry, supportMaterial);
-                bridgeScene.add(support);
-                verticalSupports.push(support);
-            }
+                // Railings
+                const railingMaterial = new THREE.LineBasicMaterial({ color: 0xff4040 });
+                const railingPoints = [];
+                for (let x = -7; x <= 7; x += 0.5) {
+                    railingPoints.push(new THREE.Vector3(x, 0.9, 1.2));
+                    railingPoints.push(new THREE.Vector3(x, 0.9, -1.2));
+                }
+                const railingGeometry = new THREE.BufferGeometry().setFromPoints(railingPoints);
+                const railing = new THREE.Line(railingGeometry, railingMaterial);
+                bridgeScene.add(railing);
+                railings.push(railing);
 
-            // Cross-bracing between towers
-            const braceMaterial = new THREE.LineBasicMaterial({ color: 0xff69b4 });
-            const bracePoints = [new THREE.Vector3(-5.5, 2, 0), new THREE.Vector3(5.5, 2, 0)];
-            const braceGeometry = new THREE.BufferGeometry().setFromPoints(bracePoints);
-            const brace = new THREE.Line(braceGeometry, braceMaterial);
-            bridgeScene.add(brace);
+                // Vertical supports
+                const supportMaterial = new THREE.LineBasicMaterial({ color: 0x800080 });
+                for (let x = -6; x <= 6; x += 1) {
+                    const supportPoints = [new THREE.Vector3(x, 0.6, 0), new THREE.Vector3(x, 3, 0)];
+                    const supportGeometry = new THREE.BufferGeometry().setFromPoints(supportPoints);
+                    const support = new THREE.Line(supportGeometry, supportMaterial);
+                    bridgeScene.add(support);
+                    verticalSupports.push(support);
+                }
 
-            // Neon lights
-            const lightMaterial = new THREE.PointsMaterial({ color: 0xff4040, size: 0.1 });
-            for (let x = -6; x <= 6; x += 1) {
-                const lightGeometry = new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(x, 0.6, 1)]);
-                const light = new THREE.Points(lightGeometry, lightMaterial);
-                bridgeScene.add(light);
-                lights.push(light);
-            }
+                // Cross-bracing
+                const braceMaterial = new THREE.LineBasicMaterial({ color: 0xff69b4 });
+                const bracePoints = [new THREE.Vector3(-5.5, 2, 0), new THREE.Vector3(5.5, 2, 0)];
+                const braceGeometry = new THREE.BufferGeometry().setFromPoints(bracePoints);
+                const brace = new THREE.Line(braceGeometry, braceMaterial);
+                bridgeScene.add(brace);
 
-            bridgeRenderer = new THREE.WebGLRenderer({ antialias: true });
-            bridgeRenderer.setSize(container.offsetWidth, container.offsetHeight);
-            container.appendChild(bridgeRenderer.domElement);
-            controls = new THREE.OrbitControls(bridgeCamera, bridgeRenderer.domElement);
-            console.log('Bridge renderer initialized:', bridgeRenderer.domElement);
-            animateBridge();
+                // Neon lights
+                const lightMaterial = new THREE.PointsMaterial({ color: 0xff4040, size: 0.1 });
+                for (let x = -6; x <= 6; x += 1) {
+                    const lightGeometry = new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(x, 0.6, 1)]);
+                    const light = new THREE.Points(lightGeometry, lightMaterial);
+                    bridgeScene.add(light);
+                    lights.push(light);
+                }
+
+                // Renderer and controls
+                bridgeRenderer = new THREE.WebGLRenderer({ antialias: true });
+                bridgeRenderer.setSize(container.offsetWidth, container.offsetHeight);
+                container.appendChild(bridgeRenderer.domElement);
+                controls = new THREE.OrbitControls(bridgeCamera, bridgeRenderer.domElement);
+                console.log('Bridge renderer initialized:', bridgeRenderer.domElement);
+                animateBridge();
+            }, undefined, (error) => {
+                console.error('Texture loading failed, using fallback material:', error);
+                const deckMaterial = new THREE.MeshPhongMaterial({ color: 0xff4040, emissive: 0xff4040, emissiveIntensity: 0.3 });
+                const deckGeometry = new THREE.BoxGeometry(14, 0.4, 2.5);
+                bridgeDeck = new THREE.Mesh(deckGeometry, deckMaterial);
+                bridgeDeck.position.y = 0.6;
+                bridgeDeck.scale.x = 0;
+                bridgeScene.add(bridgeDeck);
+                bridgeRenderer = new THREE.WebGLRenderer({ antialias: true });
+                bridgeRenderer.setSize(container.offsetWidth, container.offsetHeight);
+                container.appendChild(bridgeRenderer.domElement);
+                controls = new THREE.OrbitControls(bridgeCamera, bridgeRenderer.domElement);
+                console.log('Bridge renderer initialized with fallback:', bridgeRenderer.domElement);
+                animateBridge();
+            });
+
             window.addEventListener('resize', () => {
                 bridgeCamera.aspect = container.offsetWidth / container.offsetHeight;
                 bridgeCamera.updateProjectionMatrix();
@@ -752,20 +772,26 @@
 
         function animateBridge(time) {
             animationFrameId = requestAnimationFrame(animateBridge);
-            if (isAnimating) {
+            if (isAnimating && bridgeRenderer && bridgeScene && bridgeCamera) {
                 if (!animationStartTime) animationStartTime = time;
                 const elapsed = time - animationStartTime;
                 bridgeProgress = Math.min(elapsed / ANIMATION_DURATION, 1);
-                bridgeDeck.scale.x = bridgeProgress * 1.2;
-                towers.forEach(tower => tower.scale.y = bridgeProgress * 1.5);
-                verticalSupports.forEach(support => support.scale.y = bridgeProgress * 1.5);
-                lights.forEach(light => light.material.emissive.setHSL(Math.sin(time / 1000) * 0.5 + 0.5, 1, 0.5));
+                if (bridgeDeck) bridgeDeck.scale.x = bridgeProgress * 1.2;
+                towers.forEach(tower => { if (tower) tower.scale.y = bridgeProgress * 1.5; });
+                verticalSupports.forEach(support => { if (support) support.scale.y = bridgeProgress * 1.5; });
+                lights.forEach(light => {
+                    if (light && light.material) {
+                        light.material.color.setHSL(Math.sin(time / 1000) * 0.5 + 0.5, 1, 0.5);
+                    }
+                });
                 const chimeIntervals = [0.25, 0.5, 0.75, 1];
                 chimeIntervals.forEach((interval, index) => {
                     if (bridgeProgress >= interval && !audio.dataset[`chime${index}`]) {
-                        audio.currentTime = index * 0.5;
-                        audio.play().catch(error => console.log('Audio play failed:', error));
-                        audio.dataset[`chime${index}`] = true;
+                        if (audio) {
+                            audio.currentTime = index * 0.5;
+                            audio.play().catch(error => console.log('Audio play failed:', error));
+                            audio.dataset[`chime${index}`] = true;
+                        }
                     }
                 });
                 if (bridgeProgress >= 1) {
@@ -773,10 +799,8 @@
                     stopBridgeAnimation();
                     if (speechSynthesisSupported) speakCommand();
                 }
-            }
-            if (bridgeRenderer && bridgeScene && bridgeCamera) {
                 bridgeRenderer.render(bridgeScene, bridgeCamera);
-                controls.update();
+                if (controls) controls.update();
             } else {
                 console.error('Rendering failed: Missing bridgeRenderer, bridgeScene, or bridgeCamera');
             }
@@ -784,24 +808,30 @@
 
         function startBridgeAnimation() {
             bridgeProgress = 0;
-            bridgeDeck.scale.x = 0;
-            towers.forEach(tower => tower.scale.y = 0);
-            verticalSupports.forEach(support => support.scale.y = 0);
+            if (bridgeDeck) bridgeDeck.scale.x = 0;
+            towers.forEach(tower => { if (tower) tower.scale.y = 0; });
+            verticalSupports.forEach(support => { if (support) support.scale.y = 0; });
             isAnimating = true;
             animationStartTime = null;
-            audio.currentTime = 0;
-            audio.dataset.chime0 = audio.dataset.chime1 = audio.dataset.chime2 = audio.dataset.chime3 = false;
+            if (audio) {
+                audio.currentTime = 0;
+                audio.dataset.chime0 = audio.dataset.chime1 = audio.dataset.chime2 = audio.dataset.chime3 = false;
+                audio.play().catch(error => console.log('Audio play failed due to autoplay:', error));
+            }
             const message = document.getElementById('bridge-message');
-            message.style.opacity = 0;
-            audio.play().catch(error => console.log('Audio play failed due to autoplay:', error));
+            if (message) message.style.opacity = 0;
         }
 
         function stopBridgeAnimation() {
             const message = document.getElementById('bridge-message');
-            message.textContent = 'Your bridge has been built!';
-            message.style.opacity = 1;
-            audio.pause();
-            audio.currentTime = 0;
+            if (message) {
+                message.textContent = 'Your bridge has been built!';
+                message.style.opacity = 1;
+            }
+            if (audio) {
+                audio.pause();
+                audio.currentTime = 0;
+            }
         }
 
         window.addEventListener('load', initBridge);
@@ -1022,9 +1052,9 @@
         }
 
         function updateBlockHeight() {
-            blockHeight = Math.floor(Math.random() * 1000000) + 1; // Mock blockchain height
+            blockHeight = Math.floor(Math.random() * 1000000) + 1;
             document.getElementById('block-height').innerText = `Block: ${blockHeight}`;
-            setTimeout(updateBlockHeight, 10000); // Update every 10 seconds
+            setTimeout(updateBlockHeight, 10000);
         }
 
         function scanSecurity() {
