@@ -10,7 +10,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap" rel="stylesheet">
     <style>
         body {
-            background: url('/static/Bridgette.jpg') no-repeat center center fixed;
+            background: url('/static/bridgette.jpg') no-repeat center center fixed; /* Changed to lowercase */
             background-size: cover;
             background-color: #1c2526; /* Fallback color if image fails */
             color: #e0e0e0;
@@ -354,13 +354,14 @@
             // Retry mechanism for ticker update
             function attemptTickerUpdate(attempts = 5, delay = 1000) {
                 const tickerElement = document.getElementById('ticker');
-                if (tickerElement) {
+                const marketTickerContainer = document.getElementById('market-ticker-container');
+                if (tickerElement && marketTickerContainer) {
                     updateTicker();
                 } else if (attempts > 0) {
-                    console.log(`Ticker element not found, retrying... (${attempts} attempts left)`);
+                    console.log(`Ticker elements not found, retrying... (${attempts} attempts left)`);
                     setTimeout(() => attemptTickerUpdate(attempts - 1, delay), delay);
                 } else {
-                    console.error('Ticker element not found after all attempts');
+                    console.error('Ticker elements not found after all attempts');
                 }
             }
             attemptTickerUpdate();
@@ -494,6 +495,7 @@
             bridgeRenderer = new THREE.WebGLRenderer({ antialias: true });
             bridgeRenderer.setSize(container.offsetWidth, container.offsetHeight);
             container.appendChild(bridgeRenderer.domElement);
+            console.log('Bridge renderer initialized:', bridgeRenderer.domElement);
             animateBridge();
             window.addEventListener('resize', () => {
                 bridgeCamera.aspect = container.offsetWidth / container.offsetHeight;
@@ -526,6 +528,8 @@
             }
             if (bridgeRenderer && bridgeScene && bridgeCamera) {
                 bridgeRenderer.render(bridgeScene, bridgeCamera);
+            } else {
+                console.error('Rendering failed: Missing bridgeRenderer, bridgeScene, or bridgeCamera');
             }
         }
 
