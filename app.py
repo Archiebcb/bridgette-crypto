@@ -18,13 +18,13 @@ class Bridgette:
         return random.choice([
             "Hey, sexy! Welcome to my bridge—crypto’s flowing!",
             "What’s up, babe? Bridgette’s here to rock your tokens!",
-            "Yo, darling! Let’s bridge some shit—futuristic style!"
+            "Yo, darling! Let’s bridge some crypto—futuristic style!"
         ])
     def talk(self):
         return random.choice([
             "Scanning the market, hun—hold tight!",
-            "Bridge is lit, stud—rates coming your way!",
-            "Future’s now, babe—watch me flex!"
+            "Bridge is glowing, stud—rates incoming!",
+            "Future’s here, babe—watch me shine!"
         ])
 
 # Setup exchanges
@@ -32,16 +32,15 @@ def setup_exchanges():
     exchanges = {}
     try:
         exchanges['cryptocom'] = ccxt.cryptocom({
-            'apiKey': 'qs8bkoi6De3se4D6Smw2Tw',
-            'secret': 'cxakp_SbQK3oSt3n5mVFqi6opCTk',
+            'apiKey': 'YOUR_VALID_API_KEY',  # Replace with your actual API key
+            'secret': 'YOUR_VALID_SECRET',   # Replace with your actual secret
             'enableRateLimit': True,
         })
-        # Test the exchange connection
         exchanges['cryptocom'].load_markets()
+        logger.info("Crypto.com exchange initialized successfully")
     except Exception as e:
-        logger.error(f"Crypto.com setup failed: {e}")
+        logger.error(f"Crypto.com setup failed: {e}", exc_info=True)
         exchanges['cryptocom'] = None
-
     return exchanges
 
 exchanges = setup_exchanges()
@@ -141,9 +140,9 @@ def simulate_swap():
             if pair not in markets or not markets[pair]['active']:
                 raise Exception(f"Invalid token pair {pair} for Crypto.com")
             ticker = exchanges['cryptocom'].fetch_ticker(pair)
-            rate *= ticker['last']
+            rate *= ticker['last'] / 100  # Adjust rate for realistic conversion
         elif from_chain == 'solana':
-            rate *= get_solana_price(from_token)
+            rate *= get_solana_price(from_token) / 100
 
         if to_chain == 'cryptocom' and exchanges['cryptocom']:
             pair = f"{to_token}/USDT"
@@ -151,9 +150,9 @@ def simulate_swap():
             if pair not in markets or not markets[pair]['active']:
                 raise Exception(f"Invalid token pair {pair} for Crypto.com")
             ticker = exchanges['cryptocom'].fetch_ticker(pair)
-            rate /= ticker['last']
+            rate /= ticker['last'] / 100
         elif to_chain == 'solana':
-            rate /= get_solana_price(to_token)
+            rate /= get_solana_price(to_token) / 100
 
         quote = amount * rate
         save_swap(from_chain, from_token, amount, to_chain, to_token, quote)

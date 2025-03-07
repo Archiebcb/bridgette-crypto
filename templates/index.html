@@ -4,12 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Bridgette Crypto Bridge</title>
-    <!-- Favicon -->
     <link rel="icon" type="image/x-icon" href="/static/favicon.ico">
-    <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
-    <!-- Select2 CSS -->
     <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap" rel="stylesheet">
     <style>
         body {
             background: url('/static/Bridgette.jpg') no-repeat center center fixed;
@@ -17,10 +15,11 @@
             color: #e0e0e0;
             font-family: 'Orbitron', sans-serif;
             height: 100vh;
-            overflow-y: auto;
-            position: relative;
             margin: 0;
             padding: 0;
+            position: relative;
+            overflow-y: auto;
+            filter: brightness(1.1) contrast(1.1);
         }
         body::before {
             content: '';
@@ -29,100 +28,109 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(0, 0, 0, 0.4);
+            background: linear-gradient(to bottom, rgba(0, 0, 0, 0.4), rgba(255, 215, 0, 0.2)); /* Golden gradient */
             z-index: 1;
+            animation: pulse 6s infinite;
+        }
+        @keyframes pulse {
+            0% { opacity: 0.4; }
+            50% { opacity: 0.6; }
+            100% { opacity: 0.4; }
         }
         .navbar {
             background: linear-gradient(90deg, #1c2526, #2a3d3f);
-            border-bottom: 2px solid #00ccff;
+            border-bottom: 2px solid #ffd700; /* Golden border */
             position: relative;
             z-index: 10;
         }
         .navbar-brand {
-            font-size: 2em;
-            color: #ff69b4 !important;
+            font-size: 2.5em;
+            color: #ffd700 !important; /* Golden text */
             font-weight: bold;
-            text-shadow: 0 0 10px #ff69b4;
+            text-shadow: 0 0 15px #ffd700;
             animation: glitch 2s linear infinite;
         }
         @keyframes glitch {
             0% { transform: translate(0); }
-            2% { transform: translate(-2px, 2px); }
-            4% { transform: translate(2px, -2px); }
+            2% { transform: translate(-3px, 3px); }
+            4% { transform: translate(3px, -3px); }
             6% { transform: translate(0); }
             100% { transform: translate(0); }
         }
         #bridge-dashboard {
             min-height: 90vh;
-            padding: 40px;
-            background: rgba(42, 61, 63, 0.6);
-            border-radius: 15px;
-            box-shadow: 0 0 30px rgba(0, 204, 255, 0.7);
-            margin-top: 50px;
+            padding: 30px;
+            background: rgba(28, 37, 38, 0.8);
+            border-radius: 20px;
+            box-shadow: 0 0 40px rgba(255, 215, 0, 0.6); /* Golden shadow */
+            margin-top: 60px;
             position: relative;
             z-index: 10;
-            backdrop-filter: blur(5px);
-            border: 1px solid #00ccff;
-            animation: neon-border 3s infinite;
+            backdrop-filter: blur(8px);
+            border: 2px solid #ffd700;
+            animation: neon-border 4s infinite;
         }
         @keyframes neon-border {
-            0% { border-color: #00ccff; box-shadow: 0 0 10px #00ccff; }
-            50% { border-color: #ff69b4; box-shadow: 0 0 10px #ff69b4; }
-            100% { border-color: #00ccff; box-shadow: 0 0 10px #00ccff; }
+            0% { border-color: #ffd700; box-shadow: 0 0 15px #ffd700; }
+            50% { border-color: #ff69b4; box-shadow: 0 0 15px #ff69b4; }
+            100% { border-color: #ffd700; box-shadow: 0 0 15px #ffd700; }
         }
         .description {
-            padding: 25px;
+            padding: 20px;
             background: rgba(28, 37, 38, 0.7);
             border-radius: 10px;
-            margin-bottom: 40px;
+            margin-bottom: 30px;
             text-align: center;
-            color: #00ccff;
-            text-shadow: 0 0 8px #00ccff;
-            font-size: 1.3em;
+            color: #ffd700;
+            text-shadow: 0 0 10px #ffd700;
+            font-size: 1.4em;
         }
         #interactive-bridge {
             width: 100%;
-            height: 400px;
-            margin-bottom: 20px;
+            height: 450px;
+            margin-bottom: 30px;
             position: relative;
+            overflow: hidden;
         }
         #bridge-message {
             position: absolute;
-            bottom: -50px; /* Position below the bridge */
+            bottom: 10px; /* Adjusted to sit neatly below */
             left: 50%;
             transform: translateX(-50%);
             font-size: 2em;
-            color: #ff69b4;
-            text-shadow: 0 0 20px #ff69b4, 0 0 10px #00ccff;
+            color: #ffd700; /* Golden text */
+            text-shadow: 0 0 20px #ffd700, 0 0 10px #ff69b4;
             opacity: 0;
             transition: opacity 0.5s ease-in;
+            z-index: 12;
         }
         .holographic {
             position: absolute;
             top: 20px;
             right: 20px;
-            width: 100px;
-            height: 100px;
+            width: 120px;
+            height: 120px;
             background: url('/static/hologram.png') no-repeat center;
             background-size: contain;
-            opacity: 0.7;
+            opacity: 0.8;
             animation: float 4s ease-in-out infinite;
             z-index: 11;
         }
         @keyframes float {
             0% { transform: translateY(0); }
-            50% { transform: translateY(-20px); }
+            50% { transform: translateY(-25px); }
             100% { transform: translateY(0); }
         }
         .chat-box {
-            background: rgba(47, 68, 70, 0.7);
-            border-radius: 10px;
-            padding: 25px;
-            min-height: 200px;
+            background: rgba(47, 68, 70, 0.8);
+            border-radius: 15px;
+            padding: 20px;
+            min-height: 250px;
             overflow-y: auto;
-            border-left: 4px solid #00ccff;
-            margin-bottom: 25px;
+            border-left: 4px solid #ffd700;
+            margin-bottom: 20px;
             position: relative;
+            font-size: 1.1em;
         }
         .chat-box p {
             opacity: 0;
@@ -133,10 +141,10 @@
             100% { opacity: 1; }
         }
         .ticker {
-            color: #00ccff;
+            color: #ffd700;
             font-weight: bold;
             margin-top: 15px;
-            font-size: 1.2em;
+            font-size: 1.3em;
             opacity: 0;
             transition: opacity 0.5s ease-in;
         }
@@ -144,41 +152,43 @@
             opacity: 1;
         }
         .input-group {
-            margin-top: 25px;
+            margin-top: 20px;
             display: flex;
             align-items: center;
             flex-wrap: wrap;
+            gap: 10px;
         }
         .btn-primary {
-            background-color: #ff69b4;
-            border-color: #ff69b4;
+            background-color: #ffd700; /* Golden button */
+            border-color: #ffd700;
             transition: all 0.3s;
             padding: 12px 25px;
-            font-size: 1.2em;
-            box-shadow: 0 0 10px #ff69b4;
+            font-size: 1.3em;
+            box-shadow: 0 0 15px #ffd700;
         }
         .btn-primary:hover {
-            background-color: #ff85c0;
-            border-color: #ff85c0;
-            box-shadow: 0 0 15px #ff85c0;
+            background-color: #ffcc00;
+            border-color: #ffcc00;
+            box-shadow: 0 0 20px #ffcc00;
         }
         .sidebar {
             background: rgba(28, 37, 38, 0.7);
-            padding: 25px;
-            border-radius: 10px;
-            box-shadow: 0 0 15px rgba(0, 204, 255, 0.3);
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 0 20px rgba(255, 215, 0, 0.4);
+            margin-bottom: 20px;
         }
         .sidebar h5 {
-            color: #00ccff;
-            text-shadow: 0 0 8px #00ccff;
-            font-size: 1.4em;
+            color: #ffd700;
+            text-shadow: 0 0 10px #ffd700;
+            font-size: 1.5em;
         }
         .select2-container--default .select2-selection--single {
             background-color: rgba(47, 68, 70, 0.7);
-            border: 2px solid #00ccff;
+            border: 2px solid #ffd700;
             color: #e0e0e0;
             height: 50px;
-            border-radius: 5px;
+            border-radius: 8px;
         }
         .select2-container--default .select2-selection--single .select2-selection__rendered {
             color: #e0e0e0;
@@ -190,68 +200,63 @@
         }
         .select2-dropdown {
             background-color: rgba(47, 68, 70, 0.7);
-            border: 2px solid #00ccff;
-            border-radius: 5px;
+            border: 2px solid #ffd700;
+            border-radius: 8px;
         }
         .select2-results__option {
             color: #e0e0e0;
             padding: 12px;
         }
         .select2-results__option--highlighted {
-            background-color: #ff69b4 !important;
+            background-color: #ffd700 !important;
+            color: #1c2526;
         }
         .history-tab {
             background: rgba(28, 37, 38, 0.7);
-            border-radius: 10px;
-            padding: 20px;
+            border-radius: 15px;
+            padding: 15px;
             margin-top: 20px;
             max-height: 300px;
             overflow-y: auto;
+            border-left: 4px solid #ffd700;
         }
         .analytics {
             background: rgba(47, 68, 70, 0.7);
-            border-radius: 10px;
-            padding: 20px;
+            border-radius: 15px;
+            padding: 15px;
             margin-top: 20px;
+            border-left: 4px solid #ffd700;
         }
         @media (max-width: 768px) {
-            #bridge-dashboard { padding: 20px; }
-            #interactive-bridge { height: 250px; }
-            .sidebar { margin-bottom: 20px; }
-            .navbar-brand { font-size: 1.5em; }
-            .description { font-size: 1.1em; }
+            #bridge-dashboard { padding: 15px; }
+            #interactive-bridge { height: 300px; }
+            .sidebar { margin-bottom: 15px; }
+            .navbar-brand { font-size: 1.8em; }
+            .description { font-size: 1.2em; }
             .holographic { width: 80px; height: 80px; }
-            .input-group { flex-direction: column; }
+            .input-group { flex-direction: column; gap: 15px; }
+            .btn-primary { font-size: 1.1em; padding: 10px 20px; }
         }
     </style>
-    <!-- Three.js CDN -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r134/three.min.js"></script>
-    <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap" rel="stylesheet">
 </head>
 <body>
-    <!-- Navbar -->
     <nav class="navbar navbar-expand-lg">
         <div class="container-fluid">
             <a class="navbar-brand" href="#">Bridgette</a>
         </div>
     </nav>
-
-    <!-- Description -->
     <div class="container">
         <div class="description">
             <h4>Welcome to Bridgette Crypto Bridge</h4>
-            <p>Bridgette is your futuristic gateway to seamless cryptocurrency swapping. Powered by advanced AI, she connects major exchanges to provide real-time rates and secure transactions. Bridge your assets with confidence and watch the crypto flow!</p>
+            <p>Bridgette is your futuristic gateway to seamless cryptocurrency swapping. Powered by advanced AI, she connects major exchanges to provide real-time rates and secure transactions. Bridge your assets with confidence!</p>
         </div>
     </div>
-
-    <!-- Main Dashboard -->
     <div class="container">
         <div class="row" id="bridge-dashboard">
-            <!-- Top Row: Tickers and Swap Inputs -->
             <div class="col-md-12">
                 <div class="row">
-                    <!-- Live Tickers -->
                     <div class="col-md-3">
                         <div class="sidebar">
                             <h5>Market Stats</h5>
@@ -261,79 +266,67 @@
                             </div>
                         </div>
                     </div>
-                    <!-- Swap Inputs -->
                     <div class="col-md-9">
                         <div class="input-group">
                             <select class="form-control chain-select" id="from-chain">
-                                <option value="">Select From Chain</option>
+                                <option value="">From Chain</option>
                                 <option value="cryptocom">Ethereum (Crypto.com)</option>
                                 <option value="solana">Solana</option>
                             </select>
                             <select class="form-control token-select" id="from-token">
-                                <option value="">Select From Token</option>
+                                <option value="">From Token</option>
                             </select>
                             <input type="number" class="form-control" id="amount" placeholder="Amount" step="0.01" aria-label="Amount">
                             <select class="form-control chain-select" id="to-chain">
-                                <option value="">Select To Chain</option>
+                                <option value="">To Chain</option>
                                 <option value="cryptocom">Ethereum (Crypto.com)</option>
                                 <option value="solana">Solana</option>
                             </select>
                             <select class="form-control token-select" id="to-token">
-                                <option value="">Select To Token</option>
+                                <option value="">To Token</option>
                             </select>
                             <button class="btn btn-primary" onclick="requestSwap()">Swap</button>
                         </div>
                     </div>
                 </div>
             </div>
-            <!-- Interactive Bridge -->
             <div class="col-md-12">
                 <div id="interactive-bridge">
                     <div id="bridge-message"></div>
                 </div>
             </div>
-            <!-- Chat Box -->
             <div class="col-md-12">
                 <div class="chat-box">
                     <p>{{ greeting }}</p>
                     <p class="ticker" id="ticker">Loading rates...</p>
                 </div>
             </div>
-            <!-- History Tab -->
             <div class="col-md-12">
                 <div class="history-tab">
                     <h5>Transaction History</h5>
                     <ul id="history-list"></ul>
                 </div>
             </div>
-            <!-- Analytics -->
             <div class="col-md-12">
                 <div class="analytics">
                     <h5>Analytics</h5>
-                    <p>Total Bridged: <span id="total-bridged">0</span></p>
-                    <p>Best Trade: <span id="best-trade">0</span></p>
+                    <p>Total Bridged: <span id="total-bridged">0</span> USD</p>
+                    <p>Best Trade: <span id="best-trade">0</span> USD</p>
                     <div id="smart-suggestions"></div>
                 </div>
             </div>
         </div>
-        <!-- Holographic Element -->
         <div class="holographic"></div>
-        <!-- Placeholder for Future Bridge Design -->
-        <div id="future-bridge-space" style="height: 200px; background: rgba(0, 0, 0, 0.3); margin-top: 20px; border-radius: 15px; text-align: center; color: #00ccff; padding: 20px;">
-            <h4>Future Virtual Bridge Design</h4>
-            <p>More space here for an epic bridge visualization!</p>
+        <div id="future-bridge-space" style="height: 200px; background: rgba(28, 37, 38, 0.7); margin-top: 20px; border-radius: 15px; text-align: center; color: #ffd700; padding: 20px;">
+            <h4>Future Bridge Visualization</h4>
+            <p>Coming soon: An immersive 3D bridge experience!</p>
         </div>
     </div>
-
-    <!-- Audio Element -->
-    <audio id="bridge-audio" src="/static/bridge-complete.mp3"></audio>
-
-    <!-- Scripts at the bottom -->
+    <audio id="bridge-audio" src="/static/bridge-complete.mp3" preload="auto"></audio>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" crossorigin="anonymous"></script>
     <script>
-        // Initialize Select2 for dropdowns with search
         $(document).ready(function() {
             $('.chain-select, .token-select').select2({
                 placeholder: "Select an option",
@@ -341,56 +334,32 @@
                 width: '100%',
                 minimumResultsForSearch: 0,
                 matcher: function(params, data) {
-                    if ($.trim(params.term) === '') {
-                        return data;
-                    }
-                    if (data.text.toUpperCase().indexOf(params.term.toUpperCase()) >= 0) {
-                        return data;
-                    }
+                    if ($.trim(params.term) === '') return data;
+                    if (data.text.toUpperCase().indexOf(params.term.toUpperCase()) >= 0) return data;
                     return null;
                 }
             });
-
-            // Update token dropdowns based on chain selection
-            $('#from-chain').on('change', function() {
-                const chain = $(this).val();
-                populateTokens('from-token', chain);
-            });
-
-            $('#to-chain').on('change', function() {
-                const chain = $(this).val();
-                populateTokens('to-token', chain);
-            });
+            $('#from-chain').on('change', function() { populateTokens('from-token', $(this).val()); });
+            $('#to-chain').on('change', function() { populateTokens('to-token', $(this).val()); });
         });
 
-        // Cycle through multiple tickers
         function updateTicker() {
             fetch('/ticker')
-                .then(response => {
-                    if (!response.ok) throw new Error('Network response was not ok ' + response.statusText);
-                    return response.json();
-                })
+                .then(response => { if (!response.ok) throw new Error(response.statusText); return response.json(); })
                 .then(data => {
                     document.getElementById('ticker').innerText = `${data.message}\n${data.rates['ETH/USDT'] || 'No rate yet!'}`;
-                    const tickers = [
-                        { id: 'ticker-1', pair: 'ETH/USDT' },
-                        { id: 'ticker-2', pair: 'SOL/USDT' }
-                    ];
+                    const tickers = [{ id: 'ticker-1', pair: 'ETH/USDT' }, { id: 'ticker-2', pair: 'SOL/USDT' }];
                     let currentIndex = 0;
-
                     function cycleTickers() {
                         tickers.forEach((ticker, index) => {
                             const element = document.getElementById(ticker.id);
                             if (index === currentIndex) {
                                 element.classList.add('active');
                                 element.innerText = `${ticker.pair}: ${data.rates[ticker.pair] || 'Loading...'}`;
-                            } else {
-                                element.classList.remove('active');
-                            }
+                            } else element.classList.remove('active');
                         });
                         currentIndex = (currentIndex + 1) % tickers.length;
                     }
-
                     cycleTickers();
                     setInterval(cycleTickers, 3000);
                     setTimeout(updateTicker, 5000);
@@ -399,13 +368,9 @@
         }
         updateTicker();
 
-        // Populate token dropdowns based on chain
         function populateTokens(target, chain) {
             fetch('/available_pairs')
-                .then(response => {
-                    if (!response.ok) throw new Error('Network response was not ok ' + response.statusText);
-                    return response.json();
-                })
+                .then(response => { if (!response.ok) throw new Error(response.statusText); return response.json(); })
                 .then(data => {
                     if (data.error) throw new Error(data.error);
                     const select = document.getElementById(target);
@@ -414,25 +379,21 @@
                         const uniqueTokens = new Set();
                         data.pairs[chain].forEach(pair => {
                             const [from, to] = pair.split('/');
-                            uniqueTokens.add(from);
-                            uniqueTokens.add(to);
+                            uniqueTokens.add(from); uniqueTokens.add(to);
                         });
-                        uniqueTokens.forEach(token => {
-                            select.innerHTML += `<option value="${token}">${token}</option>`;
-                        });
+                        uniqueTokens.forEach(token => select.innerHTML += `<option value="${token}">${token}</option>`);
                     }
                     $(`#${target}`).trigger('change');
                 })
                 .catch(error => console.error('Pairs fetch error:', error));
         }
 
-        // Three.js Golden Gate Bridge Animation
         let bridgeScene, bridgeCamera, bridgeRenderer;
         let bridgeDeck, towers = [], cables = [];
         let bridgeProgress = 0;
         let animationFrameId;
         let isAnimating = false;
-        const ANIMATION_DURATION = 3000; // 3 seconds
+        const ANIMATION_DURATION = 3000;
         let animationStartTime = null;
         const audio = document.getElementById('bridge-audio');
 
@@ -441,70 +402,51 @@
             bridgeCamera = new THREE.PerspectiveCamera(75, container.offsetWidth / container.offsetHeight, 0.1, 1000);
             bridgeCamera.position.set(0, 5, 10);
             bridgeCamera.lookAt(0, 0, 0);
-
             bridgeScene = new THREE.Scene();
             bridgeScene.background = new THREE.Color(0x000000);
-
-            // Ambient Light
             const ambientLight = new THREE.AmbientLight(0x404040);
             bridgeScene.add(ambientLight);
-
-            // Directional Light
             const directionalLight = new THREE.DirectionalLight(0xffffff, 0.5);
             directionalLight.position.set(0, 1, 1);
             bridgeScene.add(directionalLight);
-
-            // Bridge Deck (longer and wider to resemble Golden Gate)
-            const deckGeometry = new THREE.BoxGeometry(10, 0.2, 1); // Longer and wider deck
-            const deckMaterial = new THREE.MeshPhongMaterial({ color: 0x00ccff, emissive: 0x00ccff, emissiveIntensity: 0.5 });
+            const deckGeometry = new THREE.BoxGeometry(10, 0.3, 1.5);
+            const deckMaterial = new THREE.MeshPhongMaterial({ color: 0xdda0dd, emissive: 0xdda0dd, emissiveIntensity: 0.5 }); // Plum for deck
             bridgeDeck = new THREE.Mesh(deckGeometry, deckMaterial);
             bridgeDeck.position.y = 0.5;
-            bridgeDeck.scale.x = 0; // Start with no length
+            bridgeDeck.scale.x = 0;
             bridgeScene.add(bridgeDeck);
-
-            // Towers (taller and slimmer, Golden Gate style)
-            const towerGeometry = new THREE.BoxGeometry(0.5, 3, 0.5); // Taller towers
-            const towerMaterial = new THREE.MeshPhongMaterial({ color: 0xff69b4, emissive: 0xff69b4, emissiveIntensity: 0.5 });
-            for (let x of [-3, 3]) { // Wider spacing for towers
+            const towerGeometry = new THREE.BoxGeometry(0.6, 4, 0.6);
+            const towerMaterial = new THREE.MeshPhongMaterial({ color: 0xffd700, emissive: 0xffd700, emissiveIntensity: 0.6 }); // Golden towers
+            for (let x of [-3.5, 3.5]) {
                 const tower = new THREE.Mesh(towerGeometry, towerMaterial);
-                tower.position.set(x, 1.5, 0); // Raise towers
-                tower.scale.y = 0; // Start with no height
+                tower.position.set(x, 2, 0);
+                tower.scale.y = 0;
                 bridgeScene.add(tower);
                 towers.push(tower);
             }
-
-            // Cables (suspension cables)
-            const cableMaterial = new THREE.LineBasicMaterial({ color: 0xffffff });
-            const cablePoints = [];
-            cablePoints.push(new THREE.Vector3(-3, 2.5, 0)); // Top of left tower
-            cablePoints.push(new THREE.Vector3(3, 2.5, 0));  // Top of right tower
+            const cableMaterial = new THREE.LineBasicMaterial({ color: 0xffd700 }); // Golden cables
+            const cablePoints = [new THREE.Vector3(-3.5, 3.5, 0), new THREE.Vector3(3.5, 3.5, 0)];
             const cableGeometry = new THREE.BufferGeometry().setFromPoints(cablePoints);
             const cable = new THREE.Line(cableGeometry, cableMaterial);
             bridgeScene.add(cable);
             cables.push(cable);
-
-            // Vertical supports (simplified)
-            const supportMaterial = new THREE.LineBasicMaterial({ color: 0xffffff });
-            for (let x = -3; x <= 3; x += 1) {
-                const supportPoints = [
-                    new THREE.Vector3(x, 0.5, 0),
-                    new THREE.Vector3(x, 2.5, 0)
-                ];
+            const supportMaterial = new THREE.LineBasicMaterial({ color: 0xffd700 }); // Golden supports
+            for (let x = -3.5; x <= 3.5; x += 1) {
+                const supportPoints = [new THREE.Vector3(x, 0.5, 0), new THREE.Vector3(x, 3.5, 0)];
                 const supportGeometry = new THREE.BufferGeometry().setFromPoints(supportPoints);
                 const support = new THREE.Line(supportGeometry, supportMaterial);
                 bridgeScene.add(support);
             }
-
             bridgeRenderer = new THREE.WebGLRenderer({ antialias: true });
             bridgeRenderer.setSize(container.offsetWidth, container.offsetHeight);
             container.appendChild(bridgeRenderer.domElement);
-
             animateBridge();
             window.addEventListener('resize', () => {
                 bridgeCamera.aspect = container.offsetWidth / container.offsetHeight;
                 bridgeCamera.updateProjectionMatrix();
                 bridgeRenderer.setSize(container.offsetWidth, container.offsetHeight);
             });
+            audio.load();
         }
 
         function animateBridge(time) {
@@ -513,23 +455,16 @@
                 if (!animationStartTime) animationStartTime = time;
                 const elapsed = time - animationStartTime;
                 bridgeProgress = Math.min(elapsed / ANIMATION_DURATION, 1);
-
-                // Animate deck and towers
-                bridgeDeck.scale.x = bridgeProgress * 1.2; // Extend deck
-                towers.forEach(tower => {
-                    tower.scale.y = bridgeProgress * 1.5; // Grow towers
-                });
-
-                // Sync sound with progress
+                bridgeDeck.scale.x = bridgeProgress * 1.2;
+                towers.forEach(tower => tower.scale.y = bridgeProgress * 1.5);
                 const chimeIntervals = [0.25, 0.5, 0.75, 1];
                 chimeIntervals.forEach((interval, index) => {
                     if (bridgeProgress >= interval && !audio.dataset[`chime${index}`]) {
                         audio.currentTime = index * 0.5;
-                        audio.play().catch(error => console.log('Chime play failed:', error));
+                        audio.play().catch(error => console.log('Audio play failed:', error));
                         audio.dataset[`chime${index}`] = true;
                     }
                 });
-
                 if (bridgeProgress >= 1) {
                     isAnimating = false;
                     stopBridgeAnimation();
@@ -548,6 +483,7 @@
             audio.dataset.chime0 = audio.dataset.chime1 = audio.dataset.chime2 = audio.dataset.chime3 = false;
             const message = document.getElementById('bridge-message');
             message.style.opacity = 0;
+            audio.play().catch(error => console.log('Audio play failed due to autoplay:', error));
         }
 
         function stopBridgeAnimation() {
@@ -585,10 +521,11 @@
             })
             .then(data => {
                 const chat = document.querySelector('.chat-box');
+                chat.innerHTML = ''; // Clear previous messages
                 if (data.error) {
-                    chat.innerHTML += `<p>Error: ${data.error}</p>`;
+                    chat.innerHTML += `<p style="color: #ff4444;">Error: ${data.error}</p>`;
                 } else {
-                    chat.innerHTML += `<p>Quote: ${data.quote} ${toToken}</p>`;
+                    chat.innerHTML += `<p>You would receive: ${data.quote.toFixed(2)} ${toToken}</p>`;
                 }
                 chat.scrollTop = chat.scrollHeight;
                 updateHistory();
@@ -597,14 +534,13 @@
             .catch(error => {
                 console.error('Swap error:', error);
                 const chat = document.querySelector('.chat-box');
-                chat.innerHTML += `<p>Error: ${error.message}</p>`;
+                chat.innerHTML = `<p style="color: #ff4444;">Error: ${error.message}</p>`;
                 chat.scrollTop = chat.scrollHeight;
                 updateHistory();
                 updateAnalytics();
             });
         }
 
-        // Update history
         function updateHistory() {
             fetch('/history')
                 .then(response => response.json())
@@ -612,13 +548,12 @@
                     const list = document.getElementById('history-list');
                     list.innerHTML = '';
                     data.history.forEach(item => {
-                        list.innerHTML += `<li>${item.timestamp} - ${item.amount} ${item.from_token} (${item.from_chain}) to ${item.to_token} (${item.to_chain}) = ${item.quote} ${item.to_token} ${item.error ? `(Error: ${item.error})` : ''}</li>`;
+                        list.innerHTML += `<li>${item.timestamp} - ${item.amount} ${item.from_token} (${item.from_chain}) to ${item.to_token} (${item.to_chain}) = ${item.quote.toFixed(2)} ${item.to_token} ${item.error ? `(Error: ${item.error})` : ''}</li>`;
                     });
                 })
                 .catch(error => console.error('History fetch error:', error));
         }
 
-        // Update analytics
         function updateAnalytics() {
             fetch('/analytics')
                 .then(response => response.json())
@@ -627,12 +562,13 @@
                     document.getElementById('best-trade').innerText = data.best_trade.toFixed(2) || 0;
                     if (data.best_trade > 0) {
                         document.getElementById('smart-suggestions').innerText = 'Suggestion: Repeat your best trade pair for max profit!';
+                    } else {
+                        document.getElementById('smart-suggestions').innerText = '';
                     }
                 })
                 .catch(error => console.error('Analytics fetch error:', error));
         }
 
-        // Initial load
         updateHistory();
         updateAnalytics();
         setInterval(updateHistory, 5000);
