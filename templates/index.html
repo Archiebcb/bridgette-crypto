@@ -350,9 +350,9 @@
             });
         });
 
-        window.onload = function() {
-            updateTicker();
-        };
+        document.addEventListener('DOMContentLoaded', function() {
+            setTimeout(updateTicker, 1000); // Additional delay for safety
+        });
 
         function updateTicker() {
             fetch('/ticker')
@@ -363,6 +363,9 @@
                         tickerElement.innerText = `${data.message}\n${data.rates['ETH/USDT'] || 'No rate yet!'}`;
                     } else {
                         console.error('Ticker element not found');
+                        // Retry after a delay if element not found
+                        setTimeout(updateTicker, 2000);
+                        return;
                     }
                     const tickers = [
                         { id: 'ticker-1', pair: 'ETH/USDT' },
@@ -378,16 +381,21 @@
                                 if (index === currentIndex) {
                                     element.classList.add('active');
                                     element.innerText = `${ticker.pair}: ${data.rates[ticker.pair] || 'Loading...'}`;
-                                } else element.classList.remove('active');
+                                } else {
+                                    element.classList.remove('active');
+                                }
                             }
                         });
                         currentIndex = (currentIndex + 1) % tickers.length;
                     }
                     cycleTickers();
-                    setInterval(cycleTickers, 3000);
+                    setInterval(cycleTickers, 5000); // Slowed down to 5 seconds
                     setTimeout(updateTicker, 5000);
                 })
-                .catch(error => console.error('Ticker fetch error:', error));
+                .catch(error => {
+                    console.error('Ticker fetch error:', error);
+                    setTimeout(updateTicker, 2000); // Retry on error
+                });
         }
 
         function populateTokens(target, chain) {
@@ -396,14 +404,24 @@
                 .then(data => {
                     if (data.error) throw new Error(data.error);
                     const select = document.getElementById(target);
+                    if (!select) {
+                        console.error(`Select element ${target} not found`);
+                        return;
+                    }
                     select.innerHTML = '<option value="">Select Token</option>';
                     if (chain && data.pairs[chain]) {
                         const uniqueTokens = new Set();
                         data.pairs[chain].forEach(pair => {
                             const [from, to] = pair.split('/');
-                            uniqueTokens.add(from); uniqueTokens.add(to);
+                            uniqueTokens.add(from);
+                            uniqueTokens.add(to);
                         });
-                        uniqueTokens.forEach(token => select.innerHTML += `<option value="${token}">${token}</option>`);
+                        uniqueTokens.forEach(token => {
+                            const option = new Option(token, token);
+                            select.add(option);
+                        });
+                    } else {
+                        console.error('No pairs found for chain:', chain);
                     }
                     $(`#${target}`).trigger('change');
                 })
@@ -460,7 +478,7 @@
                 bridgeScene.add(support);
             }
             bridgeRenderer = new THREE.WebGLRenderer({ antialias: true });
-            bridgeRenderer.setSize(container.offsetWidth, container.offsetHeight);
+            bridgeRenderer.setSize(container.offsetWidth / container.offsetHeight);
             container.appendChild(bridgeRenderer.domElement);
             animateBridge();
             window.addEventListener('resize', () => {

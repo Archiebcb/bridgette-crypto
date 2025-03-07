@@ -81,7 +81,7 @@ def get_ticker():
 @app.route('/available_pairs')
 def available_pairs():
     pairs = {
-        'cryptocom': ['ETH/USDT'],
+        'cryptocom': ['ETH/USDT', 'XRP/USDT'],
         'solana': ['SOL/USDT', 'SRM/USDT', 'RAY/USDT']
     }
     return jsonify({'pairs': pairs})
