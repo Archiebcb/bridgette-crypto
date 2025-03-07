@@ -116,7 +116,6 @@ def simulate_swap():
         quote = amount * rate
         save_swap(from_chain, from_token, amount, to_chain, to_token, quote)
 
-        # Mock analytics
         conn = sqlite3.connect('bridgette.db')
         c = conn.cursor()
         c.execute("SELECT SUM(amount), MAX(quote) FROM swaps WHERE error IS NULL")
