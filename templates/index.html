@@ -12,6 +12,7 @@
         body {
             background: url('/static/Bridgette.jpg') no-repeat center center fixed;
             background-size: cover;
+            background-color: #1c2526; /* Fallback color if image fails */
             color: #e0e0e0;
             font-family: 'Orbitron', sans-serif;
             height: 100vh;
@@ -28,7 +29,7 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: linear-gradient(to bottom, rgba(0, 0, 0, 0.4), rgba(255, 215, 0, 0.2)); /* Golden gradient */
+            background: linear-gradient(to bottom, rgba(0, 0, 0, 0.4), rgba(255, 215, 0, 0.2));
             z-index: 1;
             animation: pulse 6s infinite;
         }
@@ -39,13 +40,13 @@
         }
         .navbar {
             background: linear-gradient(90deg, #1c2526, #2a3d3f);
-            border-bottom: 2px solid #ffd700; /* Golden border */
+            border-bottom: 2px solid #ffd700;
             position: relative;
             z-index: 10;
         }
         .navbar-brand {
             font-size: 2.5em;
-            color: #ffd700 !important; /* Golden text */
+            color: #ffd700 !important;
             font-weight: bold;
             text-shadow: 0 0 15px #ffd700;
             animation: glitch 2s linear infinite;
@@ -62,7 +63,7 @@
             padding: 30px;
             background: rgba(28, 37, 38, 0.8);
             border-radius: 20px;
-            box-shadow: 0 0 40px rgba(255, 215, 0, 0.6); /* Golden shadow */
+            box-shadow: 0 0 40px rgba(255, 215, 0, 0.6);
             margin-top: 60px;
             position: relative;
             z-index: 10;
@@ -94,11 +95,11 @@
         }
         #bridge-message {
             position: absolute;
-            bottom: 10px; /* Adjusted to sit neatly below */
+            bottom: 10px;
             left: 50%;
             transform: translateX(-50%);
             font-size: 2em;
-            color: #ffd700; /* Golden text */
+            color: #ffd700;
             text-shadow: 0 0 20px #ffd700, 0 0 10px #ff69b4;
             opacity: 0;
             transition: opacity 0.5s ease-in;
@@ -159,7 +160,7 @@
             gap: 10px;
         }
         .btn-primary {
-            background-color: #ffd700; /* Golden button */
+            background-color: #ffd700;
             border-color: #ffd700;
             transition: all 0.3s;
             padding: 12px 25px;
@@ -239,7 +240,6 @@
         }
     </style>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r134/three.min.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap" rel="stylesheet">
 </head>
 <body>
     <nav class="navbar navbar-expand-lg">
@@ -297,7 +297,7 @@
             </div>
             <div class="col-md-12">
                 <div class="chat-box">
-                    <p>{{ greeting }}</p>
+                    <p id="greeting">{{ greeting }}</p>
                     <p class="ticker" id="ticker">Loading rates...</p>
                 </div>
             </div>
@@ -341,22 +341,33 @@
             });
             $('#from-chain').on('change', function() { populateTokens('from-token', $(this).val()); });
             $('#to-chain').on('change', function() { populateTokens('to-token', $(this).val()); });
+            document.querySelector('.btn-primary').addEventListener('click', () => {
+                const audio = document.getElementById('bridge-audio');
+                audio.play().catch(error => console.log('Audio play failed:', error));
+            });
         });
 
         function updateTicker() {
             fetch('/ticker')
                 .then(response => { if (!response.ok) throw new Error(response.statusText); return response.json(); })
                 .then(data => {
-                    document.getElementById('ticker').innerText = `${data.message}\n${data.rates['ETH/USDT'] || 'No rate yet!'}`;
+                    const tickerElement = document.getElementById('ticker');
+                    if (tickerElement) {
+                        tickerElement.innerText = `${data.message}\n${data.rates['ETH/USDT'] || 'No rate yet!'}`;
+                    } else {
+                        console.error('Ticker element not found');
+                    }
                     const tickers = [{ id: 'ticker-1', pair: 'ETH/USDT' }, { id: 'ticker-2', pair: 'SOL/USDT' }];
                     let currentIndex = 0;
                     function cycleTickers() {
                         tickers.forEach((ticker, index) => {
                             const element = document.getElementById(ticker.id);
-                            if (index === currentIndex) {
-                                element.classList.add('active');
-                                element.innerText = `${ticker.pair}: ${data.rates[ticker.pair] || 'Loading...'}`;
-                            } else element.classList.remove('active');
+                            if (element) {
+                                if (index === currentIndex) {
+                                    element.classList.add('active');
+                                    element.innerText = `${ticker.pair}: ${data.rates[ticker.pair] || 'Loading...'}`;
+                                } else element.classList.remove('active');
+                            }
                         });
                         currentIndex = (currentIndex + 1) % tickers.length;
                     }
@@ -410,13 +421,13 @@
             directionalLight.position.set(0, 1, 1);
             bridgeScene.add(directionalLight);
             const deckGeometry = new THREE.BoxGeometry(10, 0.3, 1.5);
-            const deckMaterial = new THREE.MeshPhongMaterial({ color: 0xdda0dd, emissive: 0xdda0dd, emissiveIntensity: 0.5 }); // Plum for deck
+            const deckMaterial = new THREE.MeshPhongMaterial({ color: 0xdda0dd, emissive: 0xdda0dd, emissiveIntensity: 0.5 });
             bridgeDeck = new THREE.Mesh(deckGeometry, deckMaterial);
             bridgeDeck.position.y = 0.5;
             bridgeDeck.scale.x = 0;
             bridgeScene.add(bridgeDeck);
             const towerGeometry = new THREE.BoxGeometry(0.6, 4, 0.6);
-            const towerMaterial = new THREE.MeshPhongMaterial({ color: 0xffd700, emissive: 0xffd700, emissiveIntensity: 0.6 }); // Golden towers
+            const towerMaterial = new THREE.MeshPhongMaterial({ color: 0xffd700, emissive: 0xffd700, emissiveIntensity: 0.6 });
             for (let x of [-3.5, 3.5]) {
                 const tower = new THREE.Mesh(towerGeometry, towerMaterial);
                 tower.position.set(x, 2, 0);
@@ -424,13 +435,13 @@
                 bridgeScene.add(tower);
                 towers.push(tower);
             }
-            const cableMaterial = new THREE.LineBasicMaterial({ color: 0xffd700 }); // Golden cables
+            const cableMaterial = new THREE.LineBasicMaterial({ color: 0xffd700 });
             const cablePoints = [new THREE.Vector3(-3.5, 3.5, 0), new THREE.Vector3(3.5, 3.5, 0)];
             const cableGeometry = new THREE.BufferGeometry().setFromPoints(cablePoints);
             const cable = new THREE.Line(cableGeometry, cableMaterial);
             bridgeScene.add(cable);
             cables.push(cable);
-            const supportMaterial = new THREE.LineBasicMaterial({ color: 0xffd700 }); // Golden supports
+            const supportMaterial = new THREE.LineBasicMaterial({ color: 0xffd700 });
             for (let x = -3.5; x <= 3.5; x += 1) {
                 const supportPoints = [new THREE.Vector3(x, 0.5, 0), new THREE.Vector3(x, 3.5, 0)];
                 const supportGeometry = new THREE.BufferGeometry().setFromPoints(supportPoints);
@@ -521,7 +532,7 @@
             })
             .then(data => {
                 const chat = document.querySelector('.chat-box');
-                chat.innerHTML = ''; // Clear previous messages
+                chat.innerHTML = '<p id="greeting">{{ greeting }}</p>'; // Reset chat box with greeting
                 if (data.error) {
                     chat.innerHTML += `<p style="color: #ff4444;">Error: ${data.error}</p>`;
                 } else {
@@ -534,7 +545,8 @@
             .catch(error => {
                 console.error('Swap error:', error);
                 const chat = document.querySelector('.chat-box');
-                chat.innerHTML = `<p style="color: #ff4444;">Error: ${error.message}</p>`;
+                chat.innerHTML = '<p id="greeting">{{ greeting }}</p>';
+                chat.innerHTML += `<p style="color: #ff4444;">Error: Failed to fetch swap quote. Please try again later.</p>`;
                 chat.scrollTop = chat.scrollHeight;
                 updateHistory();
                 updateAnalytics();

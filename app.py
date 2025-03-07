@@ -27,6 +27,14 @@ class Bridgette:
             "Future’s here, babe—watch me shine!"
         ])
 
+# Mock exchange rates for testing (bypass Crypto.com until valid credentials are provided)
+mock_rates = {
+    'ETH/USDT': 2500.00,
+    'SOL/USDT': 150.00,
+    'SRM/USDT': 1.50,
+    'RAY/USDT': 2.00
+}
+
 # Setup exchanges
 def setup_exchanges():
     exchanges = {}
@@ -79,7 +87,7 @@ def get_solana_price(token):
         return data[token.lower()]['usd'] if token.lower() in data else 150.00
     except Exception as e:
         logger.error(f"Solana price fetch error: {e}")
-        return 150.00
+        return mock_rates.get(f"{token.upper()}/USDT", 150.00)
 
 @app.route('/')
 def home():
@@ -94,12 +102,14 @@ def get_ticker():
         if exchanges['cryptocom']:
             ticker = exchanges['cryptocom'].fetch_ticker('ETH/USDT')
             rates['ETH/USDT'] = ticker['last']
+        else:
+            rates['ETH/USDT'] = mock_rates['ETH/USDT']
         sol_price = get_solana_price('solana')
         rates['SOL/USDT'] = sol_price
         return jsonify({'message': bridgette.talk(), 'rates': rates})
     except Exception as e:
         logger.error(f"Ticker fetch error: {e}")
-        return jsonify({'message': f"Oops, babe: {e}", 'rates': {}})
+        return jsonify({'message': f"Oops, babe: {e}", 'rates': mock_rates})
 
 @app.route('/available_pairs')
 def available_pairs():
@@ -108,12 +118,14 @@ def available_pairs():
         if exchanges['cryptocom']:
             markets = exchanges['cryptocom'].load_markets()
             pairs['cryptocom'] = [pair for pair in markets.keys() if markets[pair]['active'] and markets[pair]['quote'] == 'USDT']
+        else:
+            pairs['cryptocom'] = ['ETH/USDT']
         pairs['solana'] = ['SOL/USDT', 'SRM/USDT', 'RAY/USDT']
         logger.debug(f"Fetched pairs: {pairs}")
         return jsonify({'pairs': pairs})
     except Exception as e:
         logger.error(f"Pairs fetch error: {e}")
-        return jsonify({'error': str(e), 'pairs': {}})
+        return jsonify({'error': str(e), 'pairs': {'cryptocom': ['ETH/USDT'], 'solana': ['SOL/USDT', 'SRM/USDT', 'RAY/USDT']}})
 
 @app.route('/simulate_swap', methods=['POST'])
 def simulate_swap():
@@ -134,23 +146,29 @@ def simulate_swap():
 
     try:
         rate = 1.0
-        if from_chain == 'cryptocom' and exchanges['cryptocom']:
+        if from_chain == 'cryptocom':
             pair = f"{from_token}/USDT"
-            markets = exchanges['cryptocom'].load_markets()
-            if pair not in markets or not markets[pair]['active']:
-                raise Exception(f"Invalid token pair {pair} for Crypto.com")
-            ticker = exchanges['cryptocom'].fetch_ticker(pair)
-            rate *= ticker['last'] / 100  # Adjust rate for realistic conversion
+            if exchanges['cryptocom']:
+                markets = exchanges['cryptocom'].load_markets()
+                if pair not in markets or not markets[pair]['active']:
+                    raise Exception(f"Invalid token pair {pair} for Crypto.com")
+                ticker = exchanges['cryptocom'].fetch_ticker(pair)
+                rate *= ticker['last'] / 100
+            else:
+                rate *= mock_rates.get(pair, 2500.00) / 100
         elif from_chain == 'solana':
             rate *= get_solana_price(from_token) / 100
 
-        if to_chain == 'cryptocom' and exchanges['cryptocom']:
+        if to_chain == 'cryptocom':
             pair = f"{to_token}/USDT"
-            markets = exchanges['cryptocom'].load_markets()
-            if pair not in markets or not markets[pair]['active']:
-                raise Exception(f"Invalid token pair {pair} for Crypto.com")
-            ticker = exchanges['cryptocom'].fetch_ticker(pair)
-            rate /= ticker['last'] / 100
+            if exchanges['cryptocom']:
+                markets = exchanges['cryptocom'].load_markets()
+                if pair not in markets or not markets[pair]['active']:
+                    raise Exception(f"Invalid token pair {pair} for Crypto.com")
+                ticker = exchanges['cryptocom'].fetch_ticker(pair)
+                rate /= ticker['last'] / 100
+            else:
+                rate /= mock_rates.get(pair, 2500.00) / 100
         elif to_chain == 'solana':
             rate /= get_solana_price(to_token) / 100
 
