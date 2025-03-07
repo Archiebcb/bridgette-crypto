@@ -1,10 +1,8 @@
 from flask import Flask, render_template, jsonify, request, send_from_directory
-import ccxt
 import random
 import sqlite3
 import logging
 from datetime import datetime
-import requests
 
 app = Flask(__name__, static_folder='static')
 
@@ -27,7 +25,7 @@ class Bridgette:
             "Future’s here, babe—watch me shine!"
         ])
 
-# Mock exchange rates for testing (bypass Crypto.com until valid credentials are provided)
+# Mock exchange rates for testing (simplified)
 mock_rates = {
     'ETH/USDT': 2500.00,
     'SOL/USDT': 150.00,
@@ -35,59 +33,39 @@ mock_rates = {
     'RAY/USDT': 2.00
 }
 
-# Setup exchanges
-def setup_exchanges():
-    exchanges = {}
-    try:
-        exchanges['cryptocom'] = ccxt.cryptocom({
-            'apiKey': 'YOUR_VALID_API_KEY',  # Replace with your actual API key
-            'secret': 'YOUR_VALID_SECRET',   # Replace with your actual secret
-            'enableRateLimit': True,
-        })
-        exchanges['cryptocom'].load_markets()
-        logger.info("Crypto.com exchange initialized successfully")
-    except Exception as e:
-        logger.error(f"Crypto.com setup failed: {e}", exc_info=True)
-        exchanges['cryptocom'] = None
-    return exchanges
-
-exchanges = setup_exchanges()
-
 # Database setup
 def init_db():
-    conn = sqlite3.connect('bridgette.db')
-    c = conn.cursor()
-    c.execute('''CREATE TABLE IF NOT EXISTS swaps
-                 (id INTEGER PRIMARY KEY AUTOINCREMENT,
-                  timestamp TEXT,
-                  from_chain TEXT,
-                  from_token TEXT,
-                  amount REAL,
-                  to_chain TEXT,
-                  to_token TEXT,
-                  quote REAL,
-                  error TEXT)''')
-    conn.commit()
-    conn.close()
+    try:
+        conn = sqlite3.connect('bridgette.db')
+        c = conn.cursor()
+        c.execute('''CREATE TABLE IF NOT EXISTS swaps
+                     (id INTEGER PRIMARY KEY AUTOINCREMENT,
+                      timestamp TEXT,
+                      from_chain TEXT,
+                      from_token TEXT,
+                      amount REAL,
+                      to_chain TEXT,
+                      to_token TEXT,
+                      quote REAL,
+                      error TEXT)''')
+        conn.commit()
+        conn.close()
+        logger.info("Database initialized successfully")
+    except Exception as e:
+        logger.error(f"Database initialization failed: {e}")
 
 init_db()
 
 def save_swap(from_chain, from_token, amount, to_chain, to_token, quote, error=None):
-    conn = sqlite3.connect('bridgette.db')
-    c = conn.cursor()
-    c.execute("INSERT INTO swaps (timestamp, from_chain, from_token, amount, to_chain, to_token, quote, error) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
-              (datetime.now().isoformat(), from_chain, from_token, amount, to_chain, to_token, quote, error))
-    conn.commit()
-    conn.close()
-
-def get_solana_price(token):
     try:
-        response = requests.get(f"https://api.coingecko.com/api/v3/simple/price?ids={token.lower()}&vs_currencies=usd")
-        data = response.json()
-        return data[token.lower()]['usd'] if token.lower() in data else 150.00
+        conn = sqlite3.connect('bridgette.db')
+        c = conn.cursor()
+        c.execute("INSERT INTO swaps (timestamp, from_chain, from_token, amount, to_chain, to_token, quote, error) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+                  (datetime.now().isoformat(), from_chain, from_token, amount, to_chain, to_token, quote, error))
+        conn.commit()
+        conn.close()
     except Exception as e:
-        logger.error(f"Solana price fetch error: {e}")
-        return mock_rates.get(f"{token.upper()}/USDT", 150.00)
+        logger.error(f"Failed to save swap: {e}")
 
 @app.route('/')
 def home():
@@ -97,35 +75,16 @@ def home():
 @app.route('/ticker')
 def get_ticker():
     bridgette = Bridgette()
-    rates = {}
-    try:
-        if exchanges['cryptocom']:
-            ticker = exchanges['cryptocom'].fetch_ticker('ETH/USDT')
-            rates['ETH/USDT'] = ticker['last']
-        else:
-            rates['ETH/USDT'] = mock_rates['ETH/USDT']
-        sol_price = get_solana_price('solana')
-        rates['SOL/USDT'] = sol_price
-        return jsonify({'message': bridgette.talk(), 'rates': rates})
-    except Exception as e:
-        logger.error(f"Ticker fetch error: {e}")
-        return jsonify({'message': f"Oops, babe: {e}", 'rates': mock_rates})
+    rates = mock_rates.copy()
+    return jsonify({'message': bridgette.talk(), 'rates': rates})
 
 @app.route('/available_pairs')
 def available_pairs():
-    pairs = {'cryptocom': [], 'solana': []}
-    try:
-        if exchanges['cryptocom']:
-            markets = exchanges['cryptocom'].load_markets()
-            pairs['cryptocom'] = [pair for pair in markets.keys() if markets[pair]['active'] and markets[pair]['quote'] == 'USDT']
-        else:
-            pairs['cryptocom'] = ['ETH/USDT']
-        pairs['solana'] = ['SOL/USDT', 'SRM/USDT', 'RAY/USDT']
-        logger.debug(f"Fetched pairs: {pairs}")
-        return jsonify({'pairs': pairs})
-    except Exception as e:
-        logger.error(f"Pairs fetch error: {e}")
-        return jsonify({'error': str(e), 'pairs': {'cryptocom': ['ETH/USDT'], 'solana': ['SOL/USDT', 'SRM/USDT', 'RAY/USDT']}})
+    pairs = {
+        'cryptocom': ['ETH/USDT'],
+        'solana': ['SOL/USDT', 'SRM/USDT', 'RAY/USDT']
+    }
+    return jsonify({'pairs': pairs})
 
 @app.route('/simulate_swap', methods=['POST'])
 def simulate_swap():
@@ -146,57 +105,42 @@ def simulate_swap():
 
     try:
         rate = 1.0
-        if from_chain == 'cryptocom':
-            pair = f"{from_token}/USDT"
-            if exchanges['cryptocom']:
-                markets = exchanges['cryptocom'].load_markets()
-                if pair not in markets or not markets[pair]['active']:
-                    raise Exception(f"Invalid token pair {pair} for Crypto.com")
-                ticker = exchanges['cryptocom'].fetch_ticker(pair)
-                rate *= ticker['last'] / 100
-            else:
-                rate *= mock_rates.get(pair, 2500.00) / 100
-        elif from_chain == 'solana':
-            rate *= get_solana_price(from_token) / 100
-
-        if to_chain == 'cryptocom':
-            pair = f"{to_token}/USDT"
-            if exchanges['cryptocom']:
-                markets = exchanges['cryptocom'].load_markets()
-                if pair not in markets or not markets[pair]['active']:
-                    raise Exception(f"Invalid token pair {pair} for Crypto.com")
-                ticker = exchanges['cryptocom'].fetch_ticker(pair)
-                rate /= ticker['last'] / 100
-            else:
-                rate /= mock_rates.get(pair, 2500.00) / 100
-        elif to_chain == 'solana':
-            rate /= get_solana_price(to_token) / 100
-
+        from_rate = mock_rates.get(f"{from_token}/USDT", 1.0)
+        to_rate = mock_rates.get(f"{to_token}/USDT", 1.0)
+        rate = from_rate / to_rate
         quote = amount * rate
         save_swap(from_chain, from_token, amount, to_chain, to_token, quote)
         return jsonify({'quote': quote})
     except Exception as e:
-        logger.error(f"Simulate swap error: {str(e)}", exc_info=True)
+        logger.error(f"Simulate swap error: {str(e)}")
         save_swap(from_chain, from_token, amount, to_chain, to_token, 0, str(e))
         return jsonify({'quote': 0, 'error': str(e)})
 
 @app.route('/history')
 def get_history():
-    conn = sqlite3.connect('bridgette.db')
-    c = conn.cursor()
-    c.execute("SELECT * FROM swaps ORDER BY timestamp DESC")
-    history = c.fetchall()
-    conn.close()
-    return jsonify({'history': [{'id': row[0], 'timestamp': row[1], 'from_chain': row[2], 'from_token': row[3], 'amount': row[4], 'to_chain': row[5], 'to_token': row[6], 'quote': row[7], 'error': row[8]} for row in history]})
+    try:
+        conn = sqlite3.connect('bridgette.db')
+        c = conn.cursor()
+        c.execute("SELECT * FROM swaps ORDER BY timestamp DESC")
+        history = c.fetchall()
+        conn.close()
+        return jsonify({'history': [{'id': row[0], 'timestamp': row[1], 'from_chain': row[2], 'from_token': row[3], 'amount': row[4], 'to_chain': row[5], 'to_token': row[6], 'quote': row[7], 'error': row[8]} for row in history]})
+    except Exception as e:
+        logger.error(f"History fetch error: {e}")
+        return jsonify({'history': []})
 
 @app.route('/analytics')
 def get_analytics():
-    conn = sqlite3.connect('bridgette.db')
-    c = conn.cursor()
-    c.execute("SELECT SUM(amount), MAX(quote) FROM swaps WHERE error IS NULL")
-    total_bridged, best_trade = c.fetchone()
-    conn.close()
-    return jsonify({'total_bridged': total_bridged or 0, 'best_trade': best_trade or 0})
+    try:
+        conn = sqlite3.connect('bridgette.db')
+        c = conn.cursor()
+        c.execute("SELECT SUM(amount), MAX(quote) FROM swaps WHERE error IS NULL")
+        total_bridged, best_trade = c.fetchone()
+        conn.close()
+        return jsonify({'total_bridged': total_bridged or 0, 'best_trade': best_trade or 0})
+    except Exception as e:
+        logger.error(f"Analytics fetch error: {e}")
+        return jsonify({'total_bridged': 0, 'best_trade': 0})
 
 @app.route('/static/<path:filename>')
 def serve_static(filename):
