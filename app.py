@@ -31,7 +31,9 @@ mock_rates = {
     'SOL/USDT': 150.00,
     'SRM/USDT': 1.50,
     'RAY/USDT': 2.00,
-    'XRP/USDT': 2.50  # Added XRP with a realistic rate (2 XRP = ~5 USDT)
+    'XRP/USDT': 2.50,
+    'BTC/USDT': 60000.00,
+    'ADA/USDT': 1.00
 }
 
 # Database setup
@@ -82,7 +84,7 @@ def get_ticker():
 @app.route('/available_pairs')
 def available_pairs():
     pairs = {
-        'cryptocom': ['ETH/USDT', 'XRP/USDT'],
+        'cryptocom': ['ETH/USDT', 'XRP/USDT', 'BTC/USDT', 'ADA/USDT'],
         'solana': ['SOL/USDT', 'SRM/USDT', 'RAY/USDT']
     }
     return jsonify({'pairs': pairs})
