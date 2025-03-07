@@ -88,7 +88,7 @@
         }
         #bridge-message {
             position: absolute;
-            bottom: 20px;
+            bottom: -50px; /* Position below the bridge */
             left: 50%;
             transform: translateX(-50%);
             font-size: 2em;
@@ -325,6 +325,9 @@
         </div>
     </div>
 
+    <!-- Audio Element -->
+    <audio id="bridge-audio" src="/static/bridge-complete.mp3"></audio>
+
     <!-- Scripts at the bottom -->
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
@@ -431,7 +434,7 @@
         let isAnimating = false;
         const ANIMATION_DURATION = 3000; // 3 seconds
         let animationStartTime = null;
-        let audio = new Audio('/static/bridge-complete.mp3');
+        const audio = document.getElementById('bridge-audio');
 
         function initBridge() {
             const container = document.getElementById('interactive-bridge');
@@ -451,34 +454,46 @@
             directionalLight.position.set(0, 1, 1);
             bridgeScene.add(directionalLight);
 
-            // Bridge Deck (simplified Golden Gate shape)
-            const deckGeometry = new THREE.BoxGeometry(5, 0.2, 0.5);
+            // Bridge Deck (longer and wider to resemble Golden Gate)
+            const deckGeometry = new THREE.BoxGeometry(10, 0.2, 1); // Longer and wider deck
             const deckMaterial = new THREE.MeshPhongMaterial({ color: 0x00ccff, emissive: 0x00ccff, emissiveIntensity: 0.5 });
             bridgeDeck = new THREE.Mesh(deckGeometry, deckMaterial);
-            bridgeDeck.position.y = 0;
+            bridgeDeck.position.y = 0.5;
             bridgeDeck.scale.x = 0; // Start with no length
             bridgeScene.add(bridgeDeck);
 
-            // Towers (simplified Golden Gate towers)
-            const towerGeometry = new THREE.BoxGeometry(0.3, 2, 0.3);
+            // Towers (taller and slimmer, Golden Gate style)
+            const towerGeometry = new THREE.BoxGeometry(0.5, 3, 0.5); // Taller towers
             const towerMaterial = new THREE.MeshPhongMaterial({ color: 0xff69b4, emissive: 0xff69b4, emissiveIntensity: 0.5 });
-            for (let x of [-1.5, 1.5]) {
+            for (let x of [-3, 3]) { // Wider spacing for towers
                 const tower = new THREE.Mesh(towerGeometry, towerMaterial);
-                tower.position.set(x, 1, 0);
+                tower.position.set(x, 1.5, 0); // Raise towers
                 tower.scale.y = 0; // Start with no height
                 bridgeScene.add(tower);
                 towers.push(tower);
             }
 
-            // Cables (simplified suspension cables)
+            // Cables (suspension cables)
             const cableMaterial = new THREE.LineBasicMaterial({ color: 0xffffff });
             const cablePoints = [];
-            cablePoints.push(new THREE.Vector3(-1.5, 1.5, 0));
-            cablePoints.push(new THREE.Vector3(1.5, 1.5, 0));
+            cablePoints.push(new THREE.Vector3(-3, 2.5, 0)); // Top of left tower
+            cablePoints.push(new THREE.Vector3(3, 2.5, 0));  // Top of right tower
             const cableGeometry = new THREE.BufferGeometry().setFromPoints(cablePoints);
             const cable = new THREE.Line(cableGeometry, cableMaterial);
             bridgeScene.add(cable);
             cables.push(cable);
+
+            // Vertical supports (simplified)
+            const supportMaterial = new THREE.LineBasicMaterial({ color: 0xffffff });
+            for (let x = -3; x <= 3; x += 1) {
+                const supportPoints = [
+                    new THREE.Vector3(x, 0.5, 0),
+                    new THREE.Vector3(x, 2.5, 0)
+                ];
+                const supportGeometry = new THREE.BufferGeometry().setFromPoints(supportPoints);
+                const support = new THREE.Line(supportGeometry, supportMaterial);
+                bridgeScene.add(support);
+            }
 
             bridgeRenderer = new THREE.WebGLRenderer({ antialias: true });
             bridgeRenderer.setSize(container.offsetWidth, container.offsetHeight);
@@ -500,16 +515,16 @@
                 bridgeProgress = Math.min(elapsed / ANIMATION_DURATION, 1);
 
                 // Animate deck and towers
-                bridgeDeck.scale.x = bridgeProgress * 1.2; // Extend slightly beyond towers
+                bridgeDeck.scale.x = bridgeProgress * 1.2; // Extend deck
                 towers.forEach(tower => {
                     tower.scale.y = bridgeProgress * 1.5; // Grow towers
                 });
 
                 // Sync sound with progress
-                const chimeIntervals = [0.25, 0.5, 0.75, 1]; // Progress points for chimes
+                const chimeIntervals = [0.25, 0.5, 0.75, 1];
                 chimeIntervals.forEach((interval, index) => {
                     if (bridgeProgress >= interval && !audio.dataset[`chime${index}`]) {
-                        audio.currentTime = index * 0.5; // Assuming each chime is ~0.5s apart
+                        audio.currentTime = index * 0.5;
                         audio.play().catch(error => console.log('Chime play failed:', error));
                         audio.dataset[`chime${index}`] = true;
                     }
@@ -530,7 +545,7 @@
             isAnimating = true;
             animationStartTime = null;
             audio.currentTime = 0;
-            audio.dataset.chime0 = audio.dataset.chime1 = audio.dataset.chime2 = audio.dataset.chime3 = false; // Reset chimes
+            audio.dataset.chime0 = audio.dataset.chime1 = audio.dataset.chime2 = audio.dataset.chime3 = false;
             const message = document.getElementById('bridge-message');
             message.style.opacity = 0;
         }

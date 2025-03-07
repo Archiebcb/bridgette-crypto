@@ -36,6 +36,8 @@ def setup_exchanges():
             'secret': 'cxakp_SbQK3oSt3n5mVFqi6opCTk',
             'enableRateLimit': True,
         })
+        # Test the exchange connection
+        exchanges['cryptocom'].load_markets()
     except Exception as e:
         logger.error(f"Crypto.com setup failed: {e}")
         exchanges['cryptocom'] = None
@@ -92,9 +94,9 @@ def get_ticker():
     try:
         if exchanges['cryptocom']:
             ticker = exchanges['cryptocom'].fetch_ticker('ETH/USDT')
-            rates['ETH/USDT'] = f"ETH/USDT: {ticker['last']}"
+            rates['ETH/USDT'] = ticker['last']
         sol_price = get_solana_price('solana')
-        rates['SOL/USDT'] = f"SOL/USDT: {sol_price}"
+        rates['SOL/USDT'] = sol_price
         return jsonify({'message': bridgette.talk(), 'rates': rates})
     except Exception as e:
         logger.error(f"Ticker fetch error: {e}")
@@ -123,31 +125,30 @@ def simulate_swap():
     to_chain = data.get('to_chain')
     to_token = data.get('to_token')
 
+    if not all([from_chain, from_token, amount, to_chain, to_token]):
+        save_swap(from_chain, from_token, amount, to_chain, to_token, 0, 'Missing required fields')
+        return jsonify({'quote': 0, 'error': 'Missing required fields'})
+
     if from_chain not in ['cryptocom', 'solana'] or to_chain not in ['cryptocom', 'solana']:
         save_swap(from_chain, from_token, amount, to_chain, to_token, 0, 'Chain not supported')
         return jsonify({'quote': 0, 'error': 'Chain not supported'})
 
     try:
         rate = 1.0
-        # Validate Crypto.com pairs
-        if from_chain == 'cryptocom':
-            if exchanges['cryptocom'] is None:
-                raise Exception("Crypto.com exchange not initialized")
-            markets = exchanges['cryptocom'].load_markets()
+        if from_chain == 'cryptocom' and exchanges['cryptocom']:
             pair = f"{from_token}/USDT"
-            if pair not in markets:
+            markets = exchanges['cryptocom'].load_markets()
+            if pair not in markets or not markets[pair]['active']:
                 raise Exception(f"Invalid token pair {pair} for Crypto.com")
             ticker = exchanges['cryptocom'].fetch_ticker(pair)
             rate *= ticker['last']
         elif from_chain == 'solana':
             rate *= get_solana_price(from_token)
 
-        if to_chain == 'cryptocom':
-            if exchanges['cryptocom'] is None:
-                raise Exception("Crypto.com exchange not initialized")
-            markets = exchanges['cryptocom'].load_markets()
+        if to_chain == 'cryptocom' and exchanges['cryptocom']:
             pair = f"{to_token}/USDT"
-            if pair not in markets:
+            markets = exchanges['cryptocom'].load_markets()
+            if pair not in markets or not markets[pair]['active']:
                 raise Exception(f"Invalid token pair {pair} for Crypto.com")
             ticker = exchanges['cryptocom'].fetch_ticker(pair)
             rate /= ticker['last']
@@ -158,7 +159,7 @@ def simulate_swap():
         save_swap(from_chain, from_token, amount, to_chain, to_token, quote)
         return jsonify({'quote': quote})
     except Exception as e:
-        logger.error(f"Simulate swap error: {e}")
+        logger.error(f"Simulate swap error: {str(e)}", exc_info=True)
         save_swap(from_chain, from_token, amount, to_chain, to_token, 0, str(e))
         return jsonify({'quote': 0, 'error': str(e)})
 
