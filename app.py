@@ -100,11 +100,11 @@ def simulate_swap():
 
     if not all([from_chain, from_token, amount, to_chain, to_token]):
         save_swap(from_chain, from_token, amount, to_chain, to_token, 0, 'Missing required fields')
-        return jsonify({'quote': 0, 'error': 'Missing required fields'})
+        return jsonify({'quote': 0, 'error': 'Missing required fields', 'total_bridged': 0, 'best_trade': 0})
 
     if from_chain not in ['cryptocom', 'solana'] or to_chain not in ['cryptocom', 'solana']:
         save_swap(from_chain, from_token, amount, to_chain, to_token, 0, 'Chain not supported')
-        return jsonify({'quote': 0, 'error': 'Chain not supported'})
+        return jsonify({'quote': 0, 'error': 'Chain not supported', 'total_bridged': 0, 'best_trade': 0})
 
     try:
         rate = 1.0
@@ -115,11 +115,18 @@ def simulate_swap():
         rate = from_rate / to_rate if to_rate != 0 else 1.0
         quote = amount * rate
         save_swap(from_chain, from_token, amount, to_chain, to_token, quote)
-        return jsonify({'quote': quote})
+
+        # Mock analytics
+        conn = sqlite3.connect('bridgette.db')
+        c = conn.cursor()
+        c.execute("SELECT SUM(amount), MAX(quote) FROM swaps WHERE error IS NULL")
+        total_bridged, best_trade = c.fetchone()
+        conn.close()
+        return jsonify({'quote': quote, 'total_bridged': total_bridged or 0, 'best_trade': best_trade or 0})
     except Exception as e:
         logger.error(f"Simulate swap error: {str(e)}")
         save_swap(from_chain, from_token, amount, to_chain, to_token, 0, str(e))
-        return jsonify({'quote': 0, 'error': str(e)})
+        return jsonify({'quote': 0, 'error': str(e), 'total_bridged': 0, 'best_trade': 0})
 
 @app.route('/history')
 def get_history():

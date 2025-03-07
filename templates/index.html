@@ -29,7 +29,7 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: linear-gradient(to bottom, rgba(0, 0, 0, 0.4), rgba(255, 215, 0, 0.2));
+            background: linear-gradient(to bottom, rgba(128, 0, 128, 0.4), rgba(255, 105, 180, 0.2));
             z-index: 1;
             animation: pulse 6s infinite;
         }
@@ -40,15 +40,15 @@
         }
         .navbar {
             background: linear-gradient(90deg, #1c2526, #2a3d3f);
-            border-bottom: 2px solid #ffd700;
+            border-bottom: 2px solid #ff4040;
             position: relative;
             z-index: 10;
         }
         .navbar-brand {
             font-size: 2.5em;
-            color: #ffd700 !important;
+            color: #ff69b4 !important;
             font-weight: bold;
-            text-shadow: 0 0 15px #ffd700;
+            text-shadow: 0 0 15px #ff69b4;
             animation: glitch 2s linear infinite;
         }
         @keyframes glitch {
@@ -63,18 +63,18 @@
             padding: 30px;
             background: rgba(28, 37, 38, 0.8);
             border-radius: 20px;
-            box-shadow: 0 0 40px rgba(255, 215, 0, 0.6);
+            box-shadow: 0 0 40px rgba(255, 64, 64, 0.6);
             margin-top: 60px;
             position: relative;
             z-index: 10;
             backdrop-filter: blur(8px);
-            border: 2px solid #ffd700;
+            border: 2px solid #ff4040;
             animation: neon-border 4s infinite;
         }
         @keyframes neon-border {
-            0% { border-color: #ffd700; box-shadow: 0 0 15px #ffd700; }
+            0% { border-color: #ff4040; box-shadow: 0 0 15px #ff4040; }
             50% { border-color: #ff69b4; box-shadow: 0 0 15px #ff69b4; }
-            100% { border-color: #ffd700; box-shadow: 0 0 15px #ffd700; }
+            100% { border-color: #800080; box-shadow: 0 0 15px #800080; }
         }
         .description {
             padding: 20px;
@@ -82,8 +82,8 @@
             border-radius: 10px;
             margin-bottom: 30px;
             text-align: center;
-            color: #ffd700;
-            text-shadow: 0 0 10px #ffd700;
+            color: #ff69b4;
+            text-shadow: 0 0 10px #ff69b4;
             font-size: 1.4em;
         }
         #interactive-bridge {
@@ -99,8 +99,8 @@
             left: 50%;
             transform: translateX(-50%);
             font-size: 2em;
-            color: #ffd700;
-            text-shadow: 0 0 20px #ffd700, 0 0 10px #ff69b4;
+            color: #ff69b4;
+            text-shadow: 0 0 20px #ff69b4, 0 0 10px #800080;
             opacity: 0;
             transition: opacity 0.5s ease-in;
             z-index: 12;
@@ -113,7 +113,7 @@
             height: 120px;
             background: url('/static/hologram.png') no-repeat center;
             background-size: contain;
-            background-color: rgba(255, 215, 0, 0.2);
+            background-color: rgba(255, 105, 180, 0.2);
             opacity: 0.8;
             animation: holographicPulse 4s ease-in-out infinite;
             z-index: 11;
@@ -130,7 +130,7 @@
             top: -30px;
             left: 50%;
             transform: translateX(-50%);
-            background: rgba(255, 215, 0, 0.8);
+            background: rgba(255, 105, 180, 0.8);
             color: #1c2526;
             padding: 5px 10px;
             border-radius: 5px;
@@ -144,16 +144,16 @@
             padding: 20px;
             min-height: 250px;
             overflow-y: auto;
-            border-left: 4px solid #ffd700;
+            border-left: 4px solid #ff4040;
             margin-bottom: 20px;
             position: relative;
             font-size: 1.1em;
             animation: holographicChat 3s infinite;
         }
         @keyframes holographicChat {
-            0% { box-shadow: 0 0 10px #ffd700; }
+            0% { box-shadow: 0 0 10px #ff4040; }
             50% { box-shadow: 0 0 20px #ff69b4; }
-            100% { box-shadow: 0 0 10px #ffd700; }
+            100% { box-shadow: 0 0 10px #800080; }
         }
         .chat-box p {
             opacity: 0;
@@ -164,7 +164,7 @@
             100% { opacity: 1; }
         }
         .ticker {
-            color: #ffd700;
+            color: #ff69b4;
             font-weight: bold;
             margin-top: 15px;
             font-size: 1.3em;
@@ -182,33 +182,59 @@
             gap: 10px;
         }
         .btn-primary {
-            background-color: #ffd700;
-            border-color: #ffd700;
+            background-color: #ff4040;
+            border-color: #ff4040;
             transition: all 0.3s;
             padding: 12px 25px;
             font-size: 1.3em;
-            box-shadow: 0 0 15px #ffd700;
+            box-shadow: 0 0 15px #ff4040;
         }
         .btn-primary:hover {
-            background-color: #ffcc00;
-            border-color: #ffcc00;
-            box-shadow: 0 0 20px #ffcc00;
+            background-color: #ff6969;
+            border-color: #ff6969;
+            box-shadow: 0 0 20px #ff6969;
+        }
+        .btn-success {
+            background-color: #ff69b4;
+            border-color: #ff69b4;
+            transition: all 0.3s;
+            padding: 10px 20px;
+            font-size: 1.1em;
+            box-shadow: 0 0 15px #ff69b4;
+        }
+        .btn-success:hover {
+            background-color: #ff85a1;
+            border-color: #ff85a1;
+            box-shadow: 0 0 20px #ff85a1;
+        }
+        .btn-info {
+            background-color: #800080;
+            border-color: #800080;
+            transition: all 0.3s;
+            padding: 10px 20px;
+            font-size: 1.1em;
+            box-shadow: 0 0 15px #800080;
+        }
+        .btn-info:hover {
+            background-color: #9932cc;
+            border-color: #9932cc;
+            box-shadow: 0 0 20px #9932cc;
         }
         .sidebar {
             background: rgba(28, 37, 38, 0.7);
             padding: 20px;
             border-radius: 15px;
-            box-shadow: 0 0 20px rgba(255, 215, 0, 0.4);
+            box-shadow: 0 0 20px rgba(255, 64, 64, 0.4);
             margin-bottom: 20px;
         }
         .sidebar h5 {
-            color: #ffd700;
-            text-shadow: 0 0 10px #ffd700;
+            color: #ff69b4;
+            text-shadow: 0 0 10px #ff69b4;
             font-size: 1.5em;
         }
         .select2-container--default .select2-selection--single {
             background-color: rgba(47, 68, 70, 0.7);
-            border: 2px solid #ffd700;
+            border: 2px solid #ff4040;
             color: #e0e0e0;
             height: 50px;
             border-radius: 8px;
@@ -223,7 +249,7 @@
         }
         .select2-dropdown {
             background-color: rgba(47, 68, 70, 0.7);
-            border: 2px solid #ffd700;
+            border: 2px solid #ff4040;
             border-radius: 8px;
         }
         .select2-results__option {
@@ -231,7 +257,7 @@
             padding: 12px;
         }
         .select2-results__option--highlighted {
-            background-color: #ffd700 !important;
+            background-color: #ff69b4 !important;
             color: #1c2526;
         }
         .history-tab {
@@ -241,21 +267,21 @@
             margin-top: 20px;
             max-height: 300px;
             overflow-y: auto;
-            border-left: 4px solid #ffd700;
+            border-left: 4px solid #ff4040;
         }
         .analytics {
             background: rgba(47, 68, 70, 0.7);
             border-radius: 15px;
             padding: 15px;
             margin-top: 20px;
-            border-left: 4px solid #ffd700;
+            border-left: 4px solid #ff4040;
         }
         .alert-section {
             margin-top: 20px;
             padding: 10px;
             background: rgba(28, 37, 38, 0.7);
             border-radius: 15px;
-            border-left: 4px solid #ffd700;
+            border-left: 4px solid #ff4040;
         }
         .suggestion-box {
             margin-top: 20px;
@@ -269,14 +295,14 @@
             height: 200px;
             background: rgba(47, 68, 70, 0.7);
             border-radius: 15px;
-            border-left: 4px solid #ffd700;
+            border-left: 4px solid #ff4040;
         }
         .ar-preview {
             margin-top: 20px;
             padding: 10px;
             background: rgba(28, 37, 38, 0.7);
             border-radius: 15px;
-            border-left: 4px solid #00ff00;
+            border-left: 4px solid #ff69b4;
             text-align: center;
         }
         .quantum-trade {
@@ -284,8 +310,35 @@
             padding: 10px;
             background: rgba(28, 37, 38, 0.7);
             border-radius: 15px;
-            border-left: 4px solid #00ffff;
+            border-left: 4px solid #800080;
             text-align: center;
+        }
+        .blockchain-tracker {
+            margin-top: 20px;
+            padding: 10px;
+            background: rgba(28, 37, 38, 0.7);
+            border-radius: 15px;
+            border-left: 4px solid #ff4040;
+        }
+        .security-scanner {
+            margin-top: 20px;
+            padding: 10px;
+            background: rgba(28, 37, 38, 0.7);
+            border-radius: 15px;
+            border-left: 4px solid #800080;
+        }
+        .holo-dashboard {
+            margin-top: 20px;
+            padding: 10px;
+            background: rgba(47, 68, 70, 0.7);
+            border-radius: 15px;
+            border-left: 4px solid #ff69b4;
+            animation: holographicDash 3s infinite;
+        }
+        @keyframes holographicDash {
+            0% { box-shadow: 0 0 10px #ff69b4; }
+            50% { box-shadow: 0 0 20px #800080; }
+            100% { box-shadow: 0 0 10px #ff69b4; }
         }
         @media (max-width: 768px) {
             #bridge-dashboard { padding: 15px; }
@@ -301,6 +354,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r134/three.min.js"></script>
     <script src="https://unpkg.com/three@0.134.0/examples/js/controls/OrbitControls.js"></script>
     <script src="https://unpkg.com/three@0.134.0/examples/js/loaders/TextureLoader.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
     <nav class="navbar navbar-expand-lg">
@@ -359,6 +413,20 @@
                             <button class="btn btn-info" onclick="generateQuantumTrade()">Generate Trade</button>
                             <div id="quantum-trade-result"></div>
                         </div>
+                        <div class="blockchain-tracker">
+                            <h5>Blockchain Tracker</h5>
+                            <p id="block-height">Block: Loading...</p>
+                            <button class="btn btn-primary" onclick="updateBlockHeight()">Refresh</button>
+                        </div>
+                        <div class="security-scanner">
+                            <h5>Security Scanner</h5>
+                            <p id="security-status">Scanning...</p>
+                            <button class="btn btn-info" onclick="scanSecurity()">Check Security</button>
+                        </div>
+                        <div class="holo-dashboard">
+                            <h5>Holo Trade Dashboard</h5>
+                            <p id="holo-stats">Total Bridged: 0 USD | Best Trade: 0 USD</p>
+                        </div>
                     </div>
                     <div class="col-md-9">
                         <div class="input-group">
@@ -414,8 +482,8 @@
                 </div>
             </div>
         </div>
-        <div class="holographic" onclick="speakSuggestion()"></div>
-        <div id="future-bridge-space" style="height: 200px; background: rgba(28, 37, 38, 0.7); margin-top: 20px; border-radius: 15px; text-align: center; color: #ffd700; padding: 20px;">
+        <div class="holographic" onclick="speakCommand()"></div>
+        <div id="future-bridge-space" style="height: 200px; background: rgba(28, 37, 38, 0.7); margin-top: 20px; border-radius: 15px; text-align: center; color: #ff69b4; padding: 20px;">
             <h4>Future Bridge Visualization</h4>
             <p>Coming soon: An immersive 3D bridge experience!</p>
         </div>
@@ -424,11 +492,13 @@
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
         let alerts = {};
         let speechSynthesisSupported = window.speechSynthesis !== undefined;
         let arEnabled = false;
         let trendData = { labels: [], values: [] };
+        let blockHeight = 0;
 
         $(document).ready(function() {
             $('.chain-select, .token-select').select2({
@@ -449,6 +519,7 @@
                 audio.play().catch(error => console.log('Audio play failed:', error));
             });
             initTrendGraph();
+            updateBlockHeight();
         });
 
         document.addEventListener('DOMContentLoaded', function() {
@@ -544,8 +615,8 @@
                 .catch(error => console.error('Pairs fetch error:', error));
         }
 
-        let bridgeScene, bridgeCamera, bridgeRenderer;
-        let bridgeDeck, towers = [], cables = [], railings = [], verticalSupports = [];
+        let bridgeScene, bridgeCamera, bridgeRenderer, controls;
+        let bridgeDeck, towers = [], cables = [], railings = [], verticalSupports = [], lights = [];
         let bridgeProgress = 0;
         let animationFrameId;
         let isAnimating = false;
@@ -560,14 +631,14 @@
                 return;
             }
             bridgeCamera = new THREE.PerspectiveCamera(75, container.offsetWidth / container.offsetHeight, 0.1, 1000);
-            bridgeCamera.position.set(0, 5, 10);
+            bridgeCamera.position.set(0, 5, 15);
             bridgeCamera.lookAt(0, 0, 0);
             bridgeScene = new THREE.Scene();
-            bridgeScene.background = new THREE.Color(0x000000);
+            bridgeScene.background = new THREE.Color(0x1c2526);
             const ambientLight = new THREE.AmbientLight(0x404040);
             bridgeScene.add(ambientLight);
             const directionalLight = new THREE.DirectionalLight(0xffffff, 0.5);
-            directionalLight.position.set(0, 1, 1);
+            directionalLight.position.set(0, 10, 10);
             bridgeScene.add(directionalLight);
 
             // Load texture for deck
@@ -575,42 +646,64 @@
             const deckTexture = textureLoader.load('https://threejs.org/examples/textures/concrete.jpg', () => {
                 deckTexture.wrapS = THREE.RepeatWrapping;
                 deckTexture.wrapT = THREE.RepeatWrapping;
-                deckTexture.repeat.set(10, 1);
+                deckTexture.repeat.set(12, 1);
             }, undefined, () => console.error('Texture loading failed'));
-            const deckMaterial = new THREE.MeshPhongMaterial({ map: deckTexture, color: 0xdda0dd, emissive: 0xdda0dd, emissiveIntensity: 0.5 });
-            const deckGeometry = new THREE.BoxGeometry(12, 0.3, 2); // Wider and thicker deck
+            const deckMaterial = new THREE.MeshPhongMaterial({ map: deckTexture, color: 0xff4040, emissive: 0xff4040, emissiveIntensity: 0.3 });
+            const deckGeometry = new THREE.BoxGeometry(14, 0.4, 2.5); // Wider and thicker deck
             bridgeDeck = new THREE.Mesh(deckGeometry, deckMaterial);
-            bridgeDeck.position.y = 0.5;
+            bridgeDeck.position.y = 0.6;
             bridgeDeck.scale.x = 0;
             bridgeScene.add(bridgeDeck);
 
-            // Towers
-            const towerGeometry = new THREE.BoxGeometry(0.6, 4, 0.6);
-            const towerMaterial = new THREE.MeshPhongMaterial({ color: 0xffd700, emissive: 0xffd700, emissiveIntensity: 0.6 });
-            for (let x of [-4.5, 4.5]) {
+            // Road surface with lane markings
+            const roadGeometry = new THREE.PlaneGeometry(14, 2);
+            const roadMaterial = new THREE.MeshBasicMaterial({ color: 0x333333, transparent: true, opacity: 0.8 });
+            const road = new THREE.Mesh(roadGeometry, roadMaterial);
+            road.position.y = 0.7;
+            road.rotation.x = -Math.PI / 2;
+            bridgeScene.add(road);
+            const lineMaterial = new THREE.LineBasicMaterial({ color: 0xff69b4 });
+            const linePoints = [];
+            for (let x = -6; x <= 6; x += 0.5) {
+                linePoints.push(new THREE.Vector3(x, 0.71, 0));
+            }
+            const lineGeometry = new THREE.BufferGeometry().setFromPoints(linePoints);
+            const laneLines = new THREE.LineSegments(lineGeometry, lineMaterial);
+            bridgeScene.add(laneLines);
+
+            // Towers (Golden Gate-inspired)
+            const towerGeometry = new THREE.BoxGeometry(0.8, 5, 0.8);
+            const towerMaterial = new THREE.MeshPhongMaterial({ color: 0x800080, emissive: 0x800080, emissiveIntensity: 0.6 });
+            for (let x of [-5.5, 5.5]) {
                 const tower = new THREE.Mesh(towerGeometry, towerMaterial);
-                tower.position.set(x, 2, 0);
+                tower.position.set(x, 2.5, 0);
                 tower.scale.y = 0;
                 bridgeScene.add(tower);
                 towers.push(tower);
             }
 
-            // Multiple cables
-            const cableMaterial = new THREE.LineBasicMaterial({ color: 0xffd700 });
+            // Curved cables
+            const cableMaterial = new THREE.LineBasicMaterial({ color: 0xff69b4 });
             for (let i = -2; i <= 2; i++) {
-                const cablePoints = [new THREE.Vector3(-4.5 + i * 1.5, 3.5, 0), new THREE.Vector3(4.5 + i * 1.5, 3.5, 0)];
-                const cableGeometry = new THREE.BufferGeometry().setFromPoints(cablePoints);
+                const curve = new THREE.CubicBezierCurve3(
+                    new THREE.Vector3(-5.5 + i * 1.5, 4, 0),
+                    new THREE.Vector3(-3 + i * 1.5, 6, 0),
+                    new THREE.Vector3(3 + i * 1.5, 6, 0),
+                    new THREE.Vector3(5.5 + i * 1.5, 4, 0)
+                );
+                const points = curve.getPoints(50);
+                const cableGeometry = new THREE.BufferGeometry().setFromPoints(points);
                 const cable = new THREE.Line(cableGeometry, cableMaterial);
                 bridgeScene.add(cable);
                 cables.push(cable);
             }
 
             // Railings
-            const railingMaterial = new THREE.LineBasicMaterial({ color: 0xaaaaaa });
+            const railingMaterial = new THREE.LineBasicMaterial({ color: 0xff4040 });
             const railingPoints = [];
-            for (let x = -6; x <= 6; x += 0.5) {
-                railingPoints.push(new THREE.Vector3(x, 0.8, 1));
-                railingPoints.push(new THREE.Vector3(x, 0.8, -1));
+            for (let x = -7; x <= 7; x += 0.5) {
+                railingPoints.push(new THREE.Vector3(x, 0.9, 1.2));
+                railingPoints.push(new THREE.Vector3(x, 0.9, -1.2));
             }
             const railingGeometry = new THREE.BufferGeometry().setFromPoints(railingPoints);
             const railing = new THREE.Line(railingGeometry, railingMaterial);
@@ -618,18 +711,35 @@
             railings.push(railing);
 
             // Vertical supports
-            const supportMaterial = new THREE.LineBasicMaterial({ color: 0xffd700 });
-            for (let x = -5; x <= 5; x += 1) {
-                const supportPoints = [new THREE.Vector3(x, 0.5, 0), new THREE.Vector3(x, 2.5, 0)];
+            const supportMaterial = new THREE.LineBasicMaterial({ color: 0x800080 });
+            for (let x = -6; x <= 6; x += 1) {
+                const supportPoints = [new THREE.Vector3(x, 0.6, 0), new THREE.Vector3(x, 3, 0)];
                 const supportGeometry = new THREE.BufferGeometry().setFromPoints(supportPoints);
                 const support = new THREE.Line(supportGeometry, supportMaterial);
                 bridgeScene.add(support);
                 verticalSupports.push(support);
             }
 
+            // Cross-bracing between towers
+            const braceMaterial = new THREE.LineBasicMaterial({ color: 0xff69b4 });
+            const bracePoints = [new THREE.Vector3(-5.5, 2, 0), new THREE.Vector3(5.5, 2, 0)];
+            const braceGeometry = new THREE.BufferGeometry().setFromPoints(bracePoints);
+            const brace = new THREE.Line(braceGeometry, braceMaterial);
+            bridgeScene.add(brace);
+
+            // Neon lights
+            const lightMaterial = new THREE.PointsMaterial({ color: 0xff4040, size: 0.1 });
+            for (let x = -6; x <= 6; x += 1) {
+                const lightGeometry = new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(x, 0.6, 1)]);
+                const light = new THREE.Points(lightGeometry, lightMaterial);
+                bridgeScene.add(light);
+                lights.push(light);
+            }
+
             bridgeRenderer = new THREE.WebGLRenderer({ antialias: true });
             bridgeRenderer.setSize(container.offsetWidth, container.offsetHeight);
             container.appendChild(bridgeRenderer.domElement);
+            controls = new THREE.OrbitControls(bridgeCamera, bridgeRenderer.domElement);
             console.log('Bridge renderer initialized:', bridgeRenderer.domElement);
             animateBridge();
             window.addEventListener('resize', () => {
@@ -649,6 +759,7 @@
                 bridgeDeck.scale.x = bridgeProgress * 1.2;
                 towers.forEach(tower => tower.scale.y = bridgeProgress * 1.5);
                 verticalSupports.forEach(support => support.scale.y = bridgeProgress * 1.5);
+                lights.forEach(light => light.material.emissive.setHSL(Math.sin(time / 1000) * 0.5 + 0.5, 1, 0.5));
                 const chimeIntervals = [0.25, 0.5, 0.75, 1];
                 chimeIntervals.forEach((interval, index) => {
                     if (bridgeProgress >= interval && !audio.dataset[`chime${index}`]) {
@@ -660,11 +771,12 @@
                 if (bridgeProgress >= 1) {
                     isAnimating = false;
                     stopBridgeAnimation();
-                    if (speechSynthesisSupported) speakSuggestion();
+                    if (speechSynthesisSupported) speakCommand();
                 }
             }
             if (bridgeRenderer && bridgeScene && bridgeCamera) {
                 bridgeRenderer.render(bridgeScene, bridgeCamera);
+                controls.update();
             } else {
                 console.error('Rendering failed: Missing bridgeRenderer, bridgeScene, or bridgeCamera');
             }
@@ -707,6 +819,7 @@
             }
 
             startBridgeAnimation();
+            scanSecurity();
 
             fetch('/simulate_swap', {
                 method: 'POST',
@@ -721,10 +834,11 @@
                 const chat = document.querySelector('.chat-box');
                 chat.innerHTML = '<p id="greeting">{{ greeting }}</p>';
                 if (data.error) {
-                    chat.innerHTML += `<p style="color: #ff4444;">Error: ${data.error}</p>`;
+                    chat.innerHTML += `<p style="color: #ff4040;">Error: ${data.error}</p>`;
                 } else {
                     chat.innerHTML += `<p>You would receive: ${data.quote.toFixed(2)} ${toToken}</p>`;
                     updateAISuggestion(fromToken, toToken, amount, data.quote);
+                    updateHoloDashboard(data.total_bridged || 0, data.best_trade || 0);
                 }
                 chat.scrollTop = chat.scrollHeight;
                 updateHistory();
@@ -734,7 +848,7 @@
                 console.error('Swap error:', error);
                 const chat = document.querySelector('.chat-box');
                 chat.innerHTML = '<p id="greeting">{{ greeting }}</p>';
-                chat.innerHTML += `<p style="color: #ff4444;">Error: Failed to fetch swap quote. Please try again later.</p>`;
+                chat.innerHTML += `<p style="color: #ff4040;">Error: Failed to fetch swap quote. Please try again later.</p>`;
                 chat.scrollTop = chat.scrollHeight;
                 updateHistory();
                 updateAnalytics();
@@ -765,6 +879,7 @@
                     } else {
                         document.getElementById('smart-suggestions').innerText = '';
                     }
+                    updateHoloDashboard(data.total_bridged || 0, data.best_trade || 0);
                 })
                 .catch(error => console.error('Analytics fetch error:', error));
         }
@@ -804,9 +919,24 @@
             document.getElementById('ai-suggestion').innerText = suggestion;
         }
 
-        function speakSuggestion() {
+        function speakCommand() {
             if (speechSynthesisSupported) {
-                const utterance = new SpeechSynthesisUtterance('Swap complete! Your bridge is built.');
+                const commands = ['show history', 'show analytics', 'repeat greeting'];
+                const command = commands[Math.floor(Math.random() * commands.length)];
+                let utterance;
+                switch(command) {
+                    case 'show history':
+                        utterance = new SpeechSynthesisUtterance('Showing transaction history.');
+                        updateHistory();
+                        break;
+                    case 'show analytics':
+                        utterance = new SpeechSynthesisUtterance('Showing analytics.');
+                        updateAnalytics();
+                        break;
+                    case 'repeat greeting':
+                        utterance = new SpeechSynthesisUtterance(document.getElementById('greeting').innerText);
+                        break;
+                }
                 utterance.volume = 1;
                 utterance.rate = 1;
                 utterance.pitch = 1;
@@ -825,7 +955,7 @@
                     datasets: [{
                         label: 'Price Trend (USDT)',
                         data: trendData.values,
-                        borderColor: '#ffd700',
+                        borderColor: '#ff69b4',
                         fill: false
                     }]
                 },
@@ -852,7 +982,7 @@
                         datasets: [{
                             label: 'Price Trend (USDT)',
                             data: trendData.values,
-                            borderColor: '#ffd700',
+                            borderColor: '#ff69b4',
                             fill: false
                         }]
                     },
@@ -889,6 +1019,25 @@
             const toToken = tokens[Math.floor(Math.random() * tokens.length)];
             const amount = (Math.random() * 10 + 1).toFixed(2);
             document.getElementById('quantum-trade-result').innerText = `Quantum Suggestion: Swap ${amount} ${fromToken} from ${fromChain} to ${toToken} on ${toChain}`;
+        }
+
+        function updateBlockHeight() {
+            blockHeight = Math.floor(Math.random() * 1000000) + 1; // Mock blockchain height
+            document.getElementById('block-height').innerText = `Block: ${blockHeight}`;
+            setTimeout(updateBlockHeight, 10000); // Update every 10 seconds
+        }
+
+        function scanSecurity() {
+            const status = Math.random() > 0.1 ? 'Secure' : 'Warning: Potential Issue Detected';
+            document.getElementById('security-status').innerText = status;
+            if (status.includes('Warning') && speechSynthesisSupported) {
+                speak('Warning: Potential security issue detected. Please review.');
+            }
+            setTimeout(() => document.getElementById('security-status').innerText = 'Scanning...', 5000);
+        }
+
+        function updateHoloDashboard(totalBridged, bestTrade) {
+            document.getElementById('holo-stats').innerText = `Total Bridged: ${totalBridged.toFixed(2)} USD | Best Trade: ${bestTrade.toFixed(2)} USD`;
         }
 
         updateHistory();
